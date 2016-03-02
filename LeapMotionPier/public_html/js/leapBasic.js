@@ -1,15 +1,5 @@
-<!DOCTYPE html>
-<!--
-/------------------------------------------------------------------------------\
-| Copyright (C) 2012-2013 Leap Motion, Inc. All rights reserved.               |
-| Leap Motion proprietary and confidential. Not for distribution.              |
-| Use subject to the terms of the Leap Motion SDK Agreement available at       |
-| https://developer.leapmotion.com/sdk_agreement, or another agreement         |
-| between Leap Motion and you, your company or other organization.             |
-\------------------------------------------------------------------------------/
--->
 
-<!--
+/*
 
 See additional libraries, guides, and examples at:
 
@@ -17,14 +7,10 @@ See additional libraries, guides, and examples at:
  - https://developer.leapmotion.com/getting-started/javascript
  - https://developer.leapmotion.com/gallery/tags/javascript
 
--->
 
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Leap Motion JavaScript Sample</title>
-<script src="http://js.leapmotion.com/leap-0.6.4.js"></script>
-<script>
+Save data in one list 20 frame and then ricicle when finish this 20 frame
+
+-->*/
 // Store frame for motion functions
 var previousFrame = null;
 var paused = false;
@@ -64,7 +50,7 @@ Leap.loop(controllerOptions, function(frame) {
     var scaleFactor = frame.scaleFactor(previousFrame);
     frameString += "Scale factor: " + scaleFactor.toFixed(2) + "<br />";
   }
-  frameOutput.innerHTML = "<div style='width:300px; float:left; padding:5px'>" + frameString + "</div>";
+  frameOutput.innerHTML = "<div style='width:300px; float:left; padding:5px;>'" + frameString + "</div>";
 
   // Display Hand object data
   var handOutput = document.getElementById("handData");
@@ -75,12 +61,20 @@ Leap.loop(controllerOptions, function(frame) {
 
       handString += "<div style='width:300px; float:left; padding:5px'>";
       handString += "Hand ID: " + hand.id + "<br />";
+      //right or left
       handString += "Type: " + hand.type + " hand" + "<br />";
+      
+      //what is the difference between those?
+      //the Hand palmNormal() and direction() vectors define the orientation of the hand.
       handString += "Direction: " + vectorToString(hand.direction, 2) + "<br />";
       handString += "Palm position: " + vectorToString(hand.palmPosition) + " mm<br />";
+      
+      //
       handString += "Grab strength: " + hand.grabStrength + "<br />";
       handString += "Pinch strength: " + hand.pinchStrength + "<br />";
+     
       handString += "Confidence: " + hand.confidence + "<br />";
+      
       handString += "Arm direction: " + vectorToString(hand.arm.direction()) + "<br />";
       handString += "Arm center: " + vectorToString(hand.arm.center()) + "<br />";
       handString += "Arm up vector: " + vectorToString(hand.arm.basis[1]) + "<br />";
@@ -238,25 +232,3 @@ function pauseForGestures() {
     pauseOnGesture = false;
   }
 }
-
-</script>
-</head>
-<body>
-<h1>Leap Motion JavaScript Sample</h1>
-<div id="main">
-  <button id="pause" onclick="togglePause()">Pause</button>
-  <input type="checkbox" id="pauseOnGesture" onclick="pauseForGestures()">Pause on gesture</input>
-  <h3>Frame data:</h3>
-  <div id="frameData"></div>
-  <div style="clear:both;"></div>
-  <h3>Hand data:</h3>
-  <div id="handData"></div>
-  <div style="clear:both;"></div>
-  <h3>Finger and tool data:</h3>
-  <div id="pointableData"></div>
-  <div style="clear:both;"></div>
-  <h3>Gesture data:</h3>
-  <div id="gestureData"></div>
-</div>
-</body>
-</html>
