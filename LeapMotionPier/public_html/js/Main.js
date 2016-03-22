@@ -1,4 +1,4 @@
-var imported = 
+
 
 
 var index=0;
@@ -55,7 +55,7 @@ var controller = Leap.loop(controllerOptions, function(frame) {
 });
 
 
-            LeapSensor.generateToken(-1,frame);
+            LeapSensor.generateToken(-1,listFrame[0]);
 
 controller.on("gesture", function(gesture){
     
