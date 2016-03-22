@@ -1,44 +1,148 @@
-
-/*
-
-See additional libraries, guides, and examples at:
-
- - https://developer.leapmotion.com/downloads/javascript
- - https://developer.leapmotion.com/getting-started/javascript
- - https://developer.leapmotion.com/gallery/tags/javascript
+var imported = 
 
 
-Save data in one list 20 frame and then ricicle when finish this 20 frame
+var index=0;
+var previousFrame;
 
--->*/
-// Store frame for motion functions
-var previousFrame = null;
+var pauseOnGrab = false;
 var paused = false;
+//coda circolare
+var listFrame = [];
+var max =20;
+//testa e lung = 0 coda creata
+var testa = 0; 
+var lung = 0;
+
 var pauseOnGesture = false;
 
-// Setup Leap loop with frame callback function
 var controllerOptions = {enableGestures: true};
 
-// to use HMD mode:
-// controllerOptions.optimizeHMD = true;
 
-Leap.loop(controllerOptions, function(frame) {
-  if (paused) {
-    return; // Skip this update
-  }
 
-  // Display Frame object data
-  var frameOutput = document.getElementById("frameData");
 
-  var frameString = "Frame ID: " + frame.id  + "<br />"
-                  + "Timestamp: " + frame.timestamp + " &micro;s<br />"
-                  + "Hands: " + frame.hands.length + "<br />"
-                  + "Fingers: " + frame.fingers.length + "<br />"
-                  + "Tools: " + frame.tools.length + "<br />"
-                  + "Gestures: " + frame.gestures.length + "<br />";
+
+//nuovoleap.generateToken(-1,listFrame);
+
+
+var controller = Leap.loop(controllerOptions, function(frame) {
+  /*if ((paused) || (pauseOnGrab)){
+        return; // Skip this update
+  }*/
+   //setTimeout(Leap.loop(),250);
+    
+    
+    if (lung===max){//elimina l-ultimo elemento        
+            testa = (testa+1)%max;
+            lung = lung-1;    
+        }    
+    listFrame[(testa+lung)%max] = frame;
+    // console.log("Frame id " + frame.id);
+    lung++;
+ 
+    if (frame.hands.length > 0) {
+                var hand = frame.hands[0]; //left or right?
+                if ((hand.grabStrength ===1)&&(!paused)){ 
+                    //pauseOnGrab =true;
+                    togglePause("grab");
+                                       console.log("ciao");
+                    LeapSensor.generateToken(1,frame);
+                  // LeapSensor(frame,1,1);
+        
+                   
+                }
+            }
+            djestit_leap.LeapSensor.generateToken(-1,frame);
+});
+
+
+            LeapSensor.generateToken(-1,frame);
+
+controller.on("gesture", function(gesture){
+    
+   //var motivo = gesture.type;
+    switch (gesture.type) {
+        case "circle":
+                 var clockwise = false;
+                var pointableID = gesture.pointableIds[0];
+                var direction = listFrame[(testa+lung)%max].pointable(pointableID).direction;
+                var dotProduct = Leap.vec3.dot(direction, gesture.normal);
+
+                if (dotProduct  >  0) clockwise = true;
+                if ((clockwise)&&(!paused))
+                    togglePause(gesture.type + " clockwise");
+                else if ((paused) && (!clockwise))
+                      togglePause(gesture.type);
+                    
+            
+           /* gestureString += "center: " + vectorToString(gesture.center) + " mm, "
+                        + "normal: " + vectorToString(gesture.normal, 2) + ", "
+                        + "radius: " + gesture.radius.toFixed(1) + " mm, "
+                        + "progress: " + gesture.progress.toFixed(2) + " rotations";
+                */
+          break;
+        case "swipe":
+          
+          break;
+        case "screenTap":
+        case "keyTap":
+        
+          break;
+        default:
+        break;
+    }
+    
+          //togglePause(gesture.type);
+
+    
+
+});
+ 
+ 
+
+//permette di mettere in pausa l acquisizione dei dati    
+ function togglePause(motivo) {
+    paused = !paused;
+    
+    if (paused) {
+        printHtml(motivo);
+        document.getElementById("pause").innerText = "Resume";
+    } else {
+         var frameOutput = document.getElementById("frameDataList");
+          frameOutput.innerHTML = "";
+      document.getElementById("pause").innerText = "Pause";
+    }
+}
+
+    
+
+
+
+
+
+
+/* stampa la coda circolare di frame */
+function printHtml(motivo){
+
+    var frameStringList="";
+    var frameOutput = document.getElementById("frameDataList");
+    frameStringList += "<h3> motivo : " + motivo.toString() + "</h3>";
+    console.log(lung);
+    var previousFrame;
+    for (var i = 0; i< lung; i++ ){
+        //stampa a video tutti i frame
+            console.log(i);
+            frameStringList += "<h1>index n " + i + "</h1><h3>Frame data:</h3><div>";
+       
+            var frameString = "Frame ID: " + listFrame[(testa+i)%max].id  + "<br />"
+                  + "Timestamp: " + listFrame[(testa+i)%max].timestamp + " &micro;s<br />"
+                  + "Hands: " + listFrame[(testa+i)%max].hands.length + "<br />"
+                  + "Fingers: " + listFrame[(testa+i)%max].fingers.length + "<br />"
+                  + "Tools: " + listFrame[(testa+i)%max].tools.length + "<br />"
+                  + "Gestures: " + listFrame[(testa+i)%max].gestures.length + "<br />";
+
 
   // Frame motion factors
-  if (previousFrame && previousFrame.valid) {
+ /* if (previousFrame && previousFrame.valid) {
     var translation = frame.translation(previousFrame);
     frameString += "Translation: " + vectorToString(translation) + " mm <br />";
 
@@ -50,14 +154,21 @@ Leap.loop(controllerOptions, function(frame) {
     var scaleFactor = frame.scaleFactor(previousFrame);
     frameString += "Scale factor: " + scaleFactor.toFixed(2) + "<br />";
   }
-  frameOutput.innerHTML = "<div style='width:300px; float:left; padding:5px;>'" + frameString + "</div>";
+        */
+   frameStringList +=frameString + "</div>" +
+  "<div style='clear:both;'></div><h3>Hand data:</h3><div>";
+  
+                
+               
+   
 
   // Display Hand object data
-  var handOutput = document.getElementById("handData");
   var handString = "";
-  if (frame.hands.length > 0) {
-    for (var i = 0; i < frame.hands.length; i++) {
-      var hand = frame.hands[i];
+  var n =listFrame[(testa+i)%max].hands.length;
+  if (n> 0) {
+
+    for (var j = 0; j <n ; j++) {
+      var hand = listFrame[(testa+i)%max].hands[j];
 
       handString += "<div style='width:300px; float:left; padding:5px'>";
       handString += "Hand ID: " + hand.id + "<br />";
@@ -80,7 +191,7 @@ Leap.loop(controllerOptions, function(frame) {
       handString += "Arm up vector: " + vectorToString(hand.arm.basis[1]) + "<br />";
 
       // Hand motion factors
-      if (previousFrame && previousFrame.valid) {
+    /*  if (previousFrame && previousFrame.valid) {
         var translation = hand.translation(previousFrame);
         handString += "Translation: " + vectorToString(translation) + " mm<br />";
 
@@ -92,8 +203,9 @@ Leap.loop(controllerOptions, function(frame) {
         var scaleFactor = hand.scaleFactor(previousFrame);
         handString += "Scale factor: " + scaleFactor.toFixed(2) + "<br />";
       }
-
+*/
       // IDs of pointables associated with this hand
+      
       if (hand.pointables.length > 0) {
         var fingerIds = [];
         for (var j = 0; j < hand.pointables.length; j++) {
@@ -106,21 +218,25 @@ Leap.loop(controllerOptions, function(frame) {
       }
 
       handString += "</div>";
+      
+        
     }
   }
   else {
     handString += "No hands";
   }
-  handOutput.innerHTML = handString;
+  
+   frameStringList +=  handString +"</div> <div style='clear:both;'></div><h3>Finger and tool data:</h3><div>";
+  
+  
 
   // Display Pointable (finger and tool) object data
-  var pointableOutput = document.getElementById("pointableData");
   var pointableString = "";
-  if (frame.pointables.length > 0) {
+  if (listFrame[(testa+i)%max].pointables.length > 0) {
     var fingerTypeMap = ["Thumb", "Index finger", "Middle finger", "Ring finger", "Pinky finger"];
     var boneTypeMap = ["Metacarpal", "Proximal phalanx", "Intermediate phalanx", "Distal phalanx"];
-    for (var i = 0; i < frame.pointables.length; i++) {
-      var pointable = frame.pointables[i];
+    for (var j = 0; j < listFrame[(testa+i)%max].pointables.length; j++) {
+      var pointable = listFrame[(testa+i)%max].pointables[j];
 
       pointableString += "<div style='width:250px; float:left; padding:5px'>";
 
@@ -156,17 +272,17 @@ Leap.loop(controllerOptions, function(frame) {
   else {
     pointableString += "<div>No pointables</div>";
   }
-  pointableOutput.innerHTML = pointableString;
+  
+  frameStringList += pointableString + "</div><div style='clear:both;'></div><h3>Gesture data:</h3><div>";
+  
+  
 
   // Display Gesture object data
-  var gestureOutput = document.getElementById("gestureData");
   var gestureString = "";
-  if (frame.gestures.length > 0) {
-    if (pauseOnGesture) {
-      togglePause();
-    }
-    for (var i = 0; i < frame.gestures.length; i++) {
-      var gesture = frame.gestures[i];
+  if (listFrame[(testa+i)%max].gestures.length > 0) {
+   
+    for (var j = 0; j < listFrame[(testa+i)%max].gestures.length; j++) {
+      var gesture = listFrame[(testa+i)%max].gestures[j];
       gestureString += "Gesture ID: " + gesture.id + ", "
                     + "type: " + gesture.type + ", "
                     + "state: " + gesture.state + ", "
@@ -200,11 +316,16 @@ Leap.loop(controllerOptions, function(frame) {
   else {
     gestureString += "No gestures";
   }
-  gestureOutput.innerHTML = gestureString;
-
-  // Store frame for motion functions
-  previousFrame = frame;
-})
+  frameStringList += gestureString + "</div>";
+  
+  previousFrame=listFrame[(testa+i)%max];
+    }
+    
+   // console.log(frameStringList);
+    frameOutput.innerHTML = frameStringList;
+      
+    
+}
 
 function vectorToString(vector, digits) {
   if (typeof digits === "undefined") {
@@ -213,22 +334,4 @@ function vectorToString(vector, digits) {
   return "(" + vector[0].toFixed(digits) + ", "
              + vector[1].toFixed(digits) + ", "
              + vector[2].toFixed(digits) + ")";
-}
-
-function togglePause() {
-  paused = !paused;
-
-  if (paused) {
-    document.getElementById("pause").innerText = "Resume";
-  } else {
-    document.getElementById("pause").innerText = "Pause";
-  }
-}
-
-function pauseForGestures() {
-  if (document.getElementById("pauseOnGesture").checked) {
-    pauseOnGesture = true;
-  } else {
-    pauseOnGesture = false;
-  }
 }
