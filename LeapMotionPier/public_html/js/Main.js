@@ -67,12 +67,18 @@ var auxGestit= document.getElementById("#area");
 
     };
 
-
+    
 
     var tsensor = new djestit.LeapSensor(document.getElementById("area"), pan, 3);
 
-   
-   
+
+
+    //var ta1 = tsensor.generateToken(1,listFrame);
+
+    /*sa1 = tsensor.sequence.getById(0, 1);
+    if (sa1===ta1)
+        console.log("Passo 1: Tocco 1 delay 0");
+  */
   
 
 //LeapSensor.generateToken(-1,listFrame[0]);

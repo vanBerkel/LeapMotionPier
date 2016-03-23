@@ -110,12 +110,12 @@
 
         this.getById = function(delay, id) {
             var pos = 0;
-            if(this.touches[id].length < this.capacity){
+            if(this.leap[id].length < this.capacity){
                 pos = this.t_index[id] - delay -1;
             }else{
                 pos =(this.t_index[id] - delay - 1  + this.capacity) % this.capacity;
             }
-            return this.touches[id] [pos];
+            return this.leap[id] [pos];
         };
     };
 
@@ -232,7 +232,7 @@
                 "leapstart",
                 this._onLeapStart,
                 false);
-        this.element.addEventListener(
+  /*      this.element.addEventListener(
                 "leapmove",
                 this._onLeapMove,
                 false);
@@ -243,7 +243,7 @@
         this.element.addEventListener(
                 "leapcancel",
                 this._onLeapEnd,
-                false);
+                false);*/
     };
 
     djestit.LeapSensor = LeapSensor;
