@@ -24,6 +24,7 @@ var controllerOptions = {enableGestures: true};
 //nuovoleap.generateToken(-1,listFrame);
 
 
+
 var controller = Leap.loop(controllerOptions, function(frame) {
   /*if ((paused) || (pauseOnGrab)){
         return; // Skip this update
@@ -54,8 +55,27 @@ var controller = Leap.loop(controllerOptions, function(frame) {
             djestit_leap.LeapSensor.generateToken(-1,frame);
 });
 
+var auxGestit= document.getElementById("#area");
+ var pan = {
+        sequence: [
+            {gt: "leap.start", tid: 1},
+            {disabling: [
+                    {gt: "leap.move", tid: 1, iterative: true},
+                    {gt: "leap.end", tid: 1}
+                ]}
+        ]
 
-            LeapSensor.generateToken(-1,listFrame[0]);
+    };
+
+
+
+    var tsensor = new djestit.LeapSensor(document.getElementById("area"), pan, 3);
+
+   
+   
+  
+
+//LeapSensor.generateToken(-1,listFrame[0]);
 
 controller.on("gesture", function(gesture){
     
@@ -335,3 +355,4 @@ function vectorToString(vector, digits) {
              + vector[1].toFixed(digits) + ", "
              + vector[2].toFixed(digits) + ")";
 }
+
