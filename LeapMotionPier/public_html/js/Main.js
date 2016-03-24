@@ -55,8 +55,8 @@ var controller = Leap.loop(controllerOptions, function(frame) {
             djestit_leap.LeapSensor.generateToken(-1,frame);
 });
 
-var auxGestit= document.getElementById("#area");
- var pan = {
+    var auxGestit= document.getElementById("#area");
+    var pan = {
         sequence: [
             {gt: "leap.start", tid: 1},
             {disabling: [
@@ -69,11 +69,11 @@ var auxGestit= document.getElementById("#area");
 
     
 
-    var tsensor = new djestit.LeapSensor(document.getElementById("area"), pan, 3);
+    var lsensor = new window.djestit.LeapSensor(auxGestit, pan, 3);
 
 
 
-    //var ta1 = tsensor.generateToken(1,listFrame);
+    var ta1 = lsensor.generateToken(1,listFrame);
 
     /*sa1 = tsensor.sequence.getById(0, 1);
     if (sa1===ta1)

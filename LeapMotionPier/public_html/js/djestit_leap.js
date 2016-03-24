@@ -214,7 +214,6 @@
         };
 
         this._onLeapStart = function(event) {
-
             self._raiseLeapEvent(event, _LEAPSTART);
         };
 
@@ -228,6 +227,7 @@
 
 
 
+/*how put new event?
         this.element.addEventListener(
                 "leapstart",
                 this._onLeapStart,
