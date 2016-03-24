@@ -30,6 +30,7 @@
     LeapToken.prototype = new djestit.Token();
     djestit.LeapToken = LeapToken;
 
+    /* quando deve venire richiamato */
     var LeapStart = function(id) {
         this.init();
         this.id = id;
@@ -90,14 +91,18 @@
 
         this.push = function(token) {
             this._push(token);
+            
             switch (token.type) {
                 case _LEAPSTART:
                     this.leaps[token.id] = [];
                     this.l_index[token.id] = 0;
                 case _LEAPMOVE:
                 case _LEAPEND:
+                    console.log('token' + token.id + 'capacity' + this.capacity + 'type' + token.type + 'length'+this.leaps[token.id].length);
+                   
                     if (this.leaps[token.id].length < this.capacity) {
                         this.leaps[token.id].push(token);
+                        console.log('push del token in posizione ' + token.id);
                     } else {
                         this.leaps[token.id][this.l_index[token.id]] = token;
                     }
@@ -110,12 +115,12 @@
 
         this.getById = function(delay, id) {
             var pos = 0;
-            if(this.leap[id].length < this.capacity){
+            if(this.leaps[id].length < this.capacity){
                 pos = this.t_index[id] - delay -1;
             }else{
                 pos =(this.t_index[id] - delay - 1  + this.capacity) % this.capacity;
             }
-            return this.leap[id] [pos];
+            return this.leaps[id] [pos];
         };
     };
 
@@ -154,7 +159,7 @@
         if (root instanceof djestit.Term) {
             this.root = root; //attributo term, rappresenta la lista
         } else {
-            this.root = djestit.expression(root);
+            this.root = djestit.expression(root); // analizza root il file json
         }
         this.sequence = new LeapStateSequence(capacity);
        /*? leapToEvent eventToLeap differenza?? */
@@ -175,7 +180,7 @@
                     token.id = leapId;
                     break;
                 case _LEAPMOVE:
-                    token.id = this.eventToTouch[leap.identifier];
+                    token.id = this.eventToLeap[leap.identifier];
                     break;
                 case _LEAPEND:
                     token.id = this.eventToLeap[leap.identifier];
@@ -183,7 +188,7 @@
                     this.leapToEvent[token.id] = null;
                     break;
             }
-            
+            console.log('token id' + token.id);
             this.sequence.push(token);
             token.sequence = this.sequence;
             return token;
@@ -199,6 +204,13 @@
             return this.leapToEvent.length - 1;
         };
 
+/* raiseLeapEvent
+ *  viene lanciato quando?????
+ * @param {type} event
+ * @param {type} name example _LEAPSTART
+ * @returns {undefined}
+ * 
+ */
         this._raiseLeapEvent = function(event, name) {
 
             event.preventDefault();
@@ -227,21 +239,21 @@
 
 
 
-/*how put new event?
+/*
         this.element.addEventListener(
-                "leapstart",
+                "touchstart",
                 this._onLeapStart,
                 false);
   /*      this.element.addEventListener(
-                "leapmove",
+                "touchmove",
                 this._onLeapMove,
                 false);
         this.element.addEventListener(
-                "leapend",
+                "touchend",
                 this._onLeapEnd,
                 false);
         this.element.addEventListener(
-                "leapcancel",
+                "touchcancel",
                 this._onLeapEnd,
                 false);*/
     };

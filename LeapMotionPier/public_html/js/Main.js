@@ -20,18 +20,75 @@ var controllerOptions = {enableGestures: true};
 
 
 
+$(document).ready(function() {
 
-//nuovoleap.generateToken(-1,listFrame);
+    var term1 = new djestit.GroundTerm();
+    term1.type = "Start";
+    //term1.accepts = close;
+    
+    
+    var term2 = new djestit.GroundTerm();
+    term2.type = "Move" ;
+    //term2.accepts = move;
+    
+    var term3 = new djestit.GroundTerm() ;
+    term3.type = "End" ;
+    //term3.accepts = open ;
+    
+    var iterative = new djestit.Iterative(term2);
+    
+    var disabling = new djestit.Disabling([iterative, term3]);
+
+    var sequencePan = new djestit.Sequence ([term1, disabling]);
+    
+    
+    sequencePan.onComplete.add(function() {
+        console.log(sequencePan.state);
+    });
+
+    sequencePan.fire(new djestit.Token());
+    sequencePan.fire(new djestit.Token());
+
+    sequencePan.fire(new djestit.Token());
+ 
+
+    
+    
+    var auxGestit= document.getElementById("#area");
+    //gesture pan
+    var pan = {
+        sequence: [
+            {gt: "leap.start", tid: 1},
+            {disabling: [
+                    {gt: "leap.move", tid: 1, iterative: true},
+                    {gt: "leap.end", tid: 1}
+                ]}
+        ]
+
+    };
 
 
 
+  
+
+  
+    
+  
+//gesture pan
+    var lsensor = new djestit.LeapSensor(auxGestit, pan, 3);
+
+    var token;
+
+  
+
+var flag = false;
 var controller = Leap.loop(controllerOptions, function(frame) {
   /*if ((paused) || (pauseOnGrab)){
         return; // Skip this update
   }*/
    //setTimeout(Leap.loop(),250);
     
-    
+    var previousFrame = null;
     if (lung===max){//elimina l-ultimo elemento        
             testa = (testa+1)%max;
             lung = lung-1;    
@@ -44,36 +101,40 @@ var controller = Leap.loop(controllerOptions, function(frame) {
                 var hand = frame.hands[0]; //left or right?
                 if ((hand.grabStrength ===1)&&(!paused)){ 
                     //pauseOnGrab =true;
-                    togglePause("grab");
-                                       console.log("ciao");
-                    LeapSensor.generateToken(1,frame);
+                    
+                    console.log("mano chiusa");
+                    
+                    if (flag == true){             
+                       
+                        lsensor.generateToken(2,frame);
+                       
+                    } else{
+                        lsensor.generateToken(1,frame);
+                        flag = true;
+                       
+                    }
                   // LeapSensor(frame,1,1);
         
                    
                 }
+               if ((hand.grabStrength ===0)&&(!paused)){ //fine acquisizione
+                    //pauseOnGrab =true;
+                    
+                    console.log("mano aperta");
+
+                    //lsensor.generateToken(3,frame);
+
+            // LeapSensor(frame,1,1);
+                    previousFrame=null;
+                   togglePause("grab");
+                }
+                
+                
+                
             }
-            djestit_leap.LeapSensor.generateToken(-1,frame);
 });
 
-    var auxGestit= document.getElementById("#area");
-    var pan = {
-        sequence: [
-            {gt: "leap.start", tid: 1},
-            {disabling: [
-                    {gt: "leap.move", tid: 1, iterative: true},
-                    {gt: "leap.end", tid: 1}
-                ]}
-        ]
-
-    };
-
-    
-
-    var lsensor = new window.djestit.LeapSensor(auxGestit, pan, 3);
-
-
-
-    var ta1 = lsensor.generateToken(1,listFrame);
+ 
 
     /*sa1 = tsensor.sequence.getById(0, 1);
     if (sa1===ta1)
@@ -88,7 +149,7 @@ controller.on("gesture", function(gesture){
    //var motivo = gesture.type;
     switch (gesture.type) {
         case "circle":
-                 var clockwise = false;
+                /* var clockwise = false;
                 var pointableID = gesture.pointableIds[0];
                 var direction = listFrame[(testa+lung)%max].pointable(pointableID).direction;
                 var dotProduct = Leap.vec3.dot(direction, gesture.normal);
@@ -124,7 +185,7 @@ controller.on("gesture", function(gesture){
 });
  
  
-
+ });
 //permette di mettere in pausa l acquisizione dei dati    
  function togglePause(motivo) {
     paused = !paused;
@@ -148,7 +209,6 @@ controller.on("gesture", function(gesture){
 
 /* stampa la coda circolare di frame */
 function printHtml(motivo){
-
     var frameStringList="";
     var frameOutput = document.getElementById("frameDataList");
     frameStringList += "<h3> motivo : " + motivo.toString() + "</h3>";
@@ -361,4 +421,3 @@ function vectorToString(vector, digits) {
              + vector[1].toFixed(digits) + ", "
              + vector[2].toFixed(digits) + ")";
 }
-
