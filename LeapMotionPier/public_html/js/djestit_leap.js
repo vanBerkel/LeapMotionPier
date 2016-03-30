@@ -145,19 +145,70 @@
     djestit.LeapStateSequence = LeapStateSequence;
 
     djestit.leapExpression = function(json) {
+        var term;
         if (json.gt) {
             switch (json.gt) {
                 case "leap.start":
-                    return new djestit.LeapStart(json.tid);
+                    term =  new djestit.LeapStart(json.tid);
                     break;
                 case "leap.move":
-                    return new djestit.LeapMove(json.tid);
+                    term = new djestit.LeapMove(json.tid);
                     break;
                 case "leap.end":
-                    return new djestit.LeapEnd(json.tid);
+                    term = new djestit.LeapEnd(json.tid);
                     break;
             }
+            if (json.accept){
+               
+                term.accepts = function(token) {
+                    var flag = true;
+                    var accept = json.accept.toString().split(";");
+                    
+                    for(i=0; i<accept.length; i++){
+                        //var itemName = accept[i].toString().split()
+                        switch (accept[i]){
+                            case "close":
+                               
+                                if (json.close){
+                                    if (json.closeOperator){
+                                        switch (json.closeOperator){
+                                            case ">":
+                                                flag = token.close > json.close;
+                                                break;
+                                            case "<":
+                                                flag = token.close < json.close;
+                                                break;
+                                            case "=":
+                                                flag = token.close ===json.close;
+                                                break;
+                                            
+                                        }
+                                    }else
+                                        flag = token.close === json.close;
+                                }
+                                else{
+                                    console.log("you forgot to define the item close");
+                                }
+                                
+                                break;
+                            
+                            
+                        }
+                            
+                        
+                        
+                    }
+                    
+                    
+                    return flag;
+                };
+                
+                    
+                    
+            }
+            return term;
         }   
+        
     };
 
     djestit.registerGroundTerm("leap.start", djestit.leapExpression);

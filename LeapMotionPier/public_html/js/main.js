@@ -41,9 +41,11 @@ $(document).ready(function() {
     term3.type = "End" ;
     //term3.accepts = open ;
     term3.accepts = function(token) {
+       
         return token.type && token.close <0.5;
     };
     
+    // document.getElementById("up").textContent="gesto pan eseguito correttamente";
     var term4 = new djestit.LeapStart(1);
     var iterative2 =  new djestit.Iterative(term4);
     var iterative = new djestit.Iterative(term2);
@@ -70,28 +72,46 @@ $(document).ready(function() {
 
     
     
-    var auxGestit= document.getElementById("#area");
+    //var auxGestit= document.getElementById("#area");
     //gesture pan
+    /* il campo accept contiene tutti i campi che servono per accettare il ground di riferimento */
     var pan = {
         sequence: [
-            {gt: "leap.start", tid: 1},
+            {gt: "leap.start", tid: 1 , accept:"close", close: "0.5",  closeOperator: ">" },
             {disabling: [
-                    {gt: "leap.move", tid: 1, iterative: true},
-                    {gt: "leap.end", tid: 1}
+                    {gt: "leap.move", tid: 1, accept:"close", close: "0.5",  closeOperator: ">", iterative: true},
+                    {gt: "leap.end", tid: 1,accept:"close", close: "0.5",  closeOperator: "<"}
                 ]}
         ]
 
     };
 
-    /* djestit.onComplete(
+
+
+    
+     djestit.onComplete(
             ":has(:root > .gt:val(\"leap.start\"))",
             pan,
             function() {
                 console.log("line added");
                 //currentLine = paintCanvas.addLine();
             });
-    */
+   
+    djestit.onComplete(
+            ":has(:root > .gt:val(\"leap.move\"))",
+            pan,
+            function(/*args*/) {                console.log("action move ");
 
+/*
+                var toAdd = paintCanvas.coordToView({
+                    x: args.token.clientX,
+                    y: args.token.clientY
+                });
+                paintCanvas.addPoint(currentLine, toAdd);
+                paintCanvas.paint();
+  */          });
+
+    
   
 
   
@@ -102,7 +122,7 @@ $(document).ready(function() {
     var controller = new Leap.Controller();
 
 
-    var lsensor = new djestit.LeapSensor(controller, sequencePan, 3);
+    var lsensor = new djestit.LeapSensor(controller, pan, 3);
 
 
   

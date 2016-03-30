@@ -266,7 +266,7 @@
             if (this.lookahead(token) && this.children[index].fire) {
                 this.children[index].fire(token);
             } else {
-                console.log("token.close >" + token.close + " token.id >" + token.id + "token.type "+ token.type);
+                //console.log("token.close >" + token.close + " token.id >" + token.id + "token.type "+ token.type);
                 this.error();
                 return;
             }
@@ -675,6 +675,7 @@
     
     var _select = function(selector, json){
         if(window.JSONSelect){
+             
             return window.JSONSelect.match(selector, json);
         }else{
             console.log("In order to use the json selection capabilies, you must \
@@ -688,7 +689,10 @@
         var  selection = djestit._select(selector, expression);
         for(var i = 0; i<selection.length; i++){
             selection[i][event] = f;
+          
         }
+         
+        
     };
     djestit._attachHandler = _attachHandler;
     
