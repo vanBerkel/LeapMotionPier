@@ -5,7 +5,7 @@
     var _LEAPMOVE = 2;
     var _LEAPEND = 3;
 
-
+   
 //leap e' il frame da analizzare
     var LeapToken = function(leap, type) {
              
@@ -23,8 +23,22 @@
         this.timestamp = leap.timestamp;
         this.valid = leap.valid;
         
+        this.close =-1;
+        this.id =-1;
+        this.palmPosition =[];
+        if ((leap.hands!==null) && (leap.hands.length>0)){
+            this.close = leap.hands[0].grabStrength; // solo una mano
+            //hand.grabStrength
+            this.id = this.hands[0].id;
+            //this.palmPosition = this.hand.palmPosition;
+        }
+
         
-        this.id = leap.id; 
+        //this.close = leap.hands[0].grabStrength;
+       // console.log("this.close" + close + " grab" + leap.hands[0].grabStrength);
+        
+        
+        //this.id = leap.id; 
         this.type = type; // _LEAPSTART _LEAPMOVE _LEAPEND
     };
     LeapToken.prototype = new djestit.Token();
@@ -34,11 +48,11 @@
     var LeapStart = function(id) {
         this.init();
         this.id = id;
-
+      //  console.log('dentro leapStar ->' + id );
         this._accepts = function(token) {
-            if (token.type !== _LEAPSTART) {
+          /*  if (token.type !== _LEAPSTART) {
                 return false;
-            }
+            }*/
             if (this.id && this.id !== null && this.id !== token.id) {
                 return false;
             }
@@ -51,11 +65,12 @@
     var LeapMove = function(id) {
         this.init();
         this.id = id;
+        //console.log('dentro leapMove ->' + id );
 
         this._accepts = function(token) {
-            if (token.type !== _LEAPMOVE) {
+           /* if (token.type !== _LEAPMOVE) {
                 return false;
-            }
+            }*/
             if (this.id && this.id !== null && this.id !== token.id) {
                 return false;
             }
@@ -68,11 +83,11 @@
     var LeapEnd = function(id) {
         this.init();
         this.id = id;
-
+       // console.log('dentro leapEnd ->' + id );
         this._accepts = function(token) {
-            if (token.type !== _LEAPEND) {
+            /*if (token.type !== _LEAPEND) {
                 return false;
-            }
+            }*/
             if (this.id && this.id !== null && this.id !== token.id) {
                 return false;
             }
@@ -82,7 +97,7 @@
     LeapEnd.prototype = new djestit.GroundTerm();
     djestit.LeapEnd = LeapEnd;
 
-
+/* controlla lo i GroundTerm */
     var LeapStateSequence = function(capacity) {
         this.init(capacity);
         this.leaps = [];
@@ -91,14 +106,14 @@
 
         this.push = function(token) {
             this._push(token);
-            
+          
             switch (token.type) {
                 case _LEAPSTART:
                     this.leaps[token.id] = [];
                     this.l_index[token.id] = 0;
                 case _LEAPMOVE:
                 case _LEAPEND:
-                    console.log('token' + token.id + 'capacity' + this.capacity + 'type' + token.type + 'length'+this.leaps[token.id].length);
+                    console.log('token id > ' + token.id + 'capacity > ' + this.capacity + 'type> ' + token.type + 'length> '+this.leaps[token.id].length);
                    
                     if (this.leaps[token.id].length < this.capacity) {
                         this.leaps[token.id].push(token);
@@ -110,6 +125,7 @@
                     break;
 
             }
+            
             
         };
 
@@ -172,25 +188,35 @@
         this.generateToken = function(type, leap) {
             var token = new LeapToken(leap, type);
             switch (type) {
-                case _LEAPSTART:
-                    var leapId = this.firstId(leap.identifier);
-                    this.eventToLeap[leap.identifier] = leapId;
+                case _LEAPSTART: //mano rilevata
+                    
+                    var leapId = this.firstId(token.id);
+                    this.eventToLeap[token.id] = leapId;
                     //? non si può scrivere direttamente leap.identifier
-                    this.leapToEvent[leapId] = [leap.identifier];
+                    this.leapToEvent[leapId] = [token.id];
                     token.id = leapId;
+                    //console.log("LeapStart > " +token.id);
+   
                     break;
-                case _LEAPMOVE:
-                    token.id = this.eventToLeap[leap.identifier];
-                    break;
-                case _LEAPEND:
-                    token.id = this.eventToLeap[leap.identifier];
-                    delete this.eventToLeap[leap.identifier];
+                case _LEAPMOVE: //mano continua ad essere rilevata
+                    // console.log("LeapMove > " +token.id);
+                    token.id = this.eventToLeap[token.id];
+                    //console.log("LeapMove > " +token.id);
+                   break;
+                case _LEAPEND: //mano fuori dalla vista
+                   //rimuovi tutto???
+                    
+                    token.id = this.eventToLeap[leap.id];
+                    delete this.eventToLeap[leap.id];
                     this.leapToEvent[token.id] = null;
-                    break;
+                    
+                   break;
             }
-            console.log('token id' + token.id);
-            this.sequence.push(token);
-            token.sequence = this.sequence;
+            //console.log('token id' + token.id + 'leap id' + leap.id);
+            if (token.id !== undefined){
+                this.sequence.push(token);
+                token.sequence = this.sequence;
+            }
             return token;
         };
 
@@ -199,6 +225,7 @@
                 if (this.leapToEvent[i] === null) {
                     return i;
                 }
+                return 1;
             }
             this.leapToEvent.push(id);
             return this.leapToEvent.length - 1;
@@ -211,39 +238,77 @@
  * @returns {undefined}
  * 
  */
-        this._raiseLeapEvent = function(event, name) {
+        this._raiseLeapEvent = function(frame, name) {
+         //console.log("raiseLeapEvent");
+                var token = self.generateToken(name, frame);
+                if (token.id !== undefined){
+                    //console.log("token.id -> " + token.id);
+                
+                    self.root.fire(token);
+                    //self.root.lookahead(token);
+                    console.log("state -> " + self.root.state + "  self ->" + self.root.lookahead(token));
+                   // if (self.root.state = djestit.COMPLETE){
+                     //   self.root.reset();
+                        
+                    //}
+                    //console.log("state2 -> " + self.root.state + "  self ->" + self.root.lookahead(token));
+                      //  this.element.disconnect();
+                        
 
-            event.preventDefault();
-            event.stopPropagation();
-            if (!event.currentTarget === event.target) {
-                return;
+                    /*}else  if (self.root.state = djestit.COMPLETE){
+                      //  this.element.disconnect();
+                        console.log("state -> " + self.root.state + "  self ->" + self.root.lookahead(token) + "token.id" + token.id);
+
+                    }*/
+                        
+                        
+                }
+        };
+
+        this._onLeapStart = function(frame) {
+            self._raiseLeapEvent(frame,_LEAPSTART);
+        };
+
+        this._onLeapMove = function(frame) {
+            self._raiseLeapEvent(frame, _LEAPMOVE);
+        };
+
+        this._onLeapEnd = function(frame) {
+            self._raiseLeapEvent( frame,_LEAPEND);
+        };
+    
+ 
+        this.element.on('connect', function(){
+        var flag = false;
+        setInterval(function(){
+           var frame = element.frame();
+          // console.log('<p>Frame: ' + frame.id + ' is ' + (frame.valid ? 'valid.</p>' : 'invalid.</p>'));
+           if (frame.hands.length>0){
+               if (flag==false){
+                    self._onLeapStart(frame);
+                   // console.log("mani id" + frame.hands[0].id);
+                    flag=true;
+                }
+                else 
+                    self._onLeapMove(frame);
+              //self.token.type = 1;
             }
-            for (var i = 0; i < event.changedTouches.length; i++) {
-                var leap = event.changedTouches[i];
-                var token = self.generateToken(name, leap);
-                self.root.fire(token);
-            }
-        };
+           else{
+               flag=false;
+              self._onLeapEnd(frame);
+               //this._onLeapEnd;
+               //token.type =3;
+           }
+        }, 200);
+        });
 
-        this._onLeapStart = function(event) {
-            self._raiseLeapEvent(event, _LEAPSTART);
-        };
-
-        this._onLeapMove = function(event) {
-            self._raiseLeapEvent(event, _LEAPMOVE);
-        };
-
-        this._onLeapEnd = function(event) {
-            self._raiseTouchEvent(event, _LEAPEND);
-        };
-
-
-
+        this.element.connect();
 /*
+ 
+ 
         this.element.addEventListener(
-                "touchstart",
-                this._onLeapStart,
-                false);
+               LeapEvent.LEAPMOTION_INIT, onInit
+               );
   /*      this.element.addEventListener(
                 "touchmove",
                 this._onLeapMove,

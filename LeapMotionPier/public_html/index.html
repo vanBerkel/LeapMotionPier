@@ -1,42 +1,60 @@
+
 <html>
-<head><link rel="shortcut icon" href="">
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Save 20 frame</title>
-<script src="http://js.leapmotion.com/leap-0.6.4.js"></script>
 
-
-
-
-<script src="js/djestit.js"></script>
-<script src="js/djestit_leap.js"></script><script src="js/djestit-touch.js"></script>
-
-<script src="js/Main.js"></script>
-</head>
-<body>
-<h1>20 frame list</h1>
-<div id="main">
-    <button id="pause" onclick='togglePause("")'>Pause</button>
-    <h3 id="title">Frame data List:</h3>
-    <script> 
-       //this.touchToEvent[touchId] = [leap.identifier]
-      
-  
-       
-    </script>
-    <div id="frameDataList">
-      
+    <head>
+        <title>Leap gesture</title>
+        <!-- Latest compiled and minified CSS -->
         
-    </div>
- 
-  <div style="clear:both;"></div>
 
-  
-  
-  
-  <div id="area" style="display: none"></div>
-  
-  
-  
-</div>
-</body>
+        <script type="text/javascript" src="js/lib/three.js"></script>
+        <script type="text/javascript" src="js/lib/leap.min.js"></script>
+        <script type="text/javascript" src="js/lib/leap-plugins.min.js"></script>
+        <script type="text/javascript" src="js/lib/leap.rigged-hand.min.js"></script>
+        <script type="text/javascript" src="js/lib/leap.rigged-hand.min.js"></script>
+        <script type="text/javascript" src="js/lib/TrackballControls.js"></script>
+        <script type="text/javascript" src="js/lib/jquery-1.9.1.js"></script>
+        <script type="text/javascript" src="js/lib/bootstrap.min.js"></script>
+        
+        <script src="js/handMesh.js"></script>
+        <script type="text/javascript" src="js/gestureVisualizer.js"></script>
+        <script type="text/javascript" src="js/tutorialSequence.js"></script>
+       <script type="text/javascript" src="js/gestureAnimator.js"></script>
+        
+        
+         <script type="text/javascript" src="js/djestit.js"></script>
+          <script type="text/javascript" src="js/djestit_leap.js"></script>
+           <script type="text/javascript" src="js/main.js"></script>
+        <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"> 
+    <body>
+        <div id="main">
+            <div id="up">metti la mano sopra il leap motion</div>
+            
+            <div id="container"></div>
+
+        </div>
+
+       <p>Gesture count: <span id="gestures">Gesture count</span></p>
+
+<script>
+var gestureCountDisplay = document.getElementById('gestures');
+
+var controller = new Leap.Controller({enableGestures:true});
+controller.connect();
+
+var lastID = 0;
+
+var update = function(){
+    var gestureCount = 0;
+    var frameCount = controller.frame().id - lastID;
+    for(f = 0; f < frameCount; f++)
+    {
+        gestureCount += controller.frame(f).gestures.length;
+    }
+    gestureCountDisplay.innerText = gestureCount + " gesture objects counted in " + frameCount + " frames.";
+    lastID = controller.frame().id;
+}
+
+setInterval(update, 1000);
+</script>
+    </body>
 </html>

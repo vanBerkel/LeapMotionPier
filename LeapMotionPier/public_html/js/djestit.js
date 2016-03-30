@@ -82,7 +82,7 @@
     var StateSequence = function(capacity) {
         
         this.init = function(capacity){
-            this.capacity = capacity ? capacity : 2; //perchè due?
+            this.capacity = capacity ? capacity : 2; //se capacitì ha un valore mette il valore altrimenti mette 2
             this.tokens = [];
             this.index = -1;
         };
@@ -226,7 +226,7 @@
     djestit.CompositeTerm = CompositeTerm;
 
     /**
-     * A composite expression of terms connected with the sequence operator.
+     * A composite expression of terms connected with the operator.
      * The sequence operator expresses that the connected sub-terms (two or more) 
      * have to be performed in sequence, from left to right.
      * @param {type} terms the list of sub-terms
@@ -266,6 +266,7 @@
             if (this.lookahead(token) && this.children[index].fire) {
                 this.children[index].fire(token);
             } else {
+                console.log("token.close >" + token.close + " token.id >" + token.id + "token.type "+ token.type);
                 this.error();
                 return;
             }
