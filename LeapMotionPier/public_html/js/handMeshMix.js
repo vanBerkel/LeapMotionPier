@@ -5,7 +5,8 @@
  */
 
 function HandMesh() {
-
+var primaryColor = 0x9100ce;
+var secondColor = 0xe3c4f0;
     var _baseBoneRotation = (new THREE.Quaternion).setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0));
 
     var drawBone = function(finger, bone) {
@@ -33,14 +34,16 @@ function HandMesh() {
     var _jointMeshes = [];
     var _palmMeshes = [];
 
-    this.newHand = function(hand) {
+    this.newHand = function(hand, color) {
+        primaryColor = 0x9100ce;
+        secondColor = 0xe3c4f0;
         _palmMeshes[hand.id] = [];
         _boneMeshes[hand.id] = [];
         _jointMeshes[hand.id] = [];
 
         var palmMesh = new THREE.Mesh(new THREE.SphereGeometry(8),
                 new THREE.MeshPhongMaterial());
-        palmMesh.material.color.setHex(0x0088ce);
+        palmMesh.material.color.setHex(primaryColor);
 
         var points = new Array();
         points.push((new THREE.Vector3).fromArray(hand.indexFinger.bones[1].prevJoint));
@@ -51,7 +54,7 @@ function HandMesh() {
 
         var length;
         var material = new THREE.MeshPhongMaterial();
-        material.color.setHex(0xffffff);
+        material.color.setHex(secondColor );
         for (var i = 0, len = points.length - 1; i < len; i++) {
 
             var border = new THREE.CylinderGeometry(5, 5, 1);
@@ -68,7 +71,7 @@ function HandMesh() {
         var pinkyCarp = new THREE.Mesh(new THREE.SphereGeometry(8),
                 new THREE.MeshPhongMaterial()
                 );
-        pinkyCarp.material.color.setHex(0x0088ce);
+        pinkyCarp.material.color.setHex(primaryColor);
 
         _baseObject.add(palmMesh);
         _baseObject.add(pinkyCarp);
@@ -95,7 +98,7 @@ function HandMesh() {
                             new THREE.MeshPhongMaterial()
                             );
 
-                    boneMesh.material.color.setHex(0xffffff);
+                    boneMesh.material.color.setHex(secondColor );
                     _baseObject.add(boneMesh);
                     boneMeshes.push(boneMesh);
                 }
@@ -112,7 +115,7 @@ function HandMesh() {
                             new THREE.MeshPhongMaterial()
                             );
 
-                    jointMesh.material.color.setHex(0x0088ce);
+                    jointMesh.material.color.setHex(primaryColor);
                     _baseObject.add(jointMesh);
                     jointMeshes.push(jointMesh);
 
@@ -127,7 +130,9 @@ function HandMesh() {
         });
     };
 
-    this.updateHand = function(hand) {
+    this.updateHand = function(hand, color) {
+        if (color!=null)
+            primaryColor = color;
         hand.fingers.forEach(function(finger) {
 
             // for each frame we position both bones (cylinders) and joints
@@ -136,12 +141,13 @@ function HandMesh() {
                     var bone = finger.bones[i + 1];
                     if (bone) {
                         mesh.position.fromArray(bone.center());
-
+                        
                         mesh.setRotationFromMatrix(
                                 (new THREE.Matrix4).fromArray(bone.matrix())
                                 );
 
                         mesh.quaternion.multiply(_baseBoneRotation);
+                        // mesh.material.color.setHex(primaryColor);
 
                     }
                 });
@@ -150,10 +156,12 @@ function HandMesh() {
                     var bone = finger.bones[i + 1];
                     if (bone) {
                         mesh.position.fromArray(bone.prevJoint);
+                         mesh.material.color.setHex(primaryColor);
                     } else {
                         // fingertip
                         var bone = finger.bones[i];
                         mesh.position.fromArray(bone.nextJoint);
+                         mesh.material.color.setHex(primaryColor);
                     }
 
 
@@ -188,17 +196,19 @@ function HandMesh() {
                     case 4:
                         // palm center
                         mesh.position.fromArray(hand.palmPosition);
-
+                         mesh.material.color.setHex(primaryColor);
                         break;
 
 
                     case 5:
                         // pinky carp joint position
                         mesh.position.fromArray(hand.pinky.carpPosition);
+                         mesh.material.color.setHex(primaryColor);
                         break;
 
 
                 }
+               
             });
         }
         emitUpdate();
