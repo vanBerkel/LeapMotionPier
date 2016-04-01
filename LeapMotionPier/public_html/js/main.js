@@ -134,6 +134,16 @@ var container;
         render();
 
     }
+     gestureSegment.render = this.renderer;
+        gestureSegment.helpMesh = help;
+       gestureSegment.camera = this.camera;
+       gestureSegment.scene = this.scene;
+        gestureSegment.config = config;
+    
+     //gestureSegment.requestAnimation();
+    
+    
+    
     var term1 = new djestit.LeapStart(1);
     term1.type = "Start";
     term1.accepts = function(token) {
@@ -170,9 +180,10 @@ var container;
     
     var choice = new djestit.Choice([sequencePan]);
     
-  
-
+    var choiceiterative  = new djestit.Iterative([choice]);
     
+
+   
     
     
     /* il campo accept contiene tutti i campi che servono per accettare il ground di riferimento */
@@ -180,8 +191,8 @@ var container;
         sequence: [
             {gt: "leap.start", tid: 1 , accept:"close", close: "0.8",  closeOperator: ">" },
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"close", close: "0.8",  closeOperator: "=", iterative: true},
-                    {gt: "leap.end", tid: 1,accept:"close", close: "0.5",  closeOperator: "="}
+                    {gt: "leap.move", tid: 1, accept:"close", close: "0.8",  closeOperator: ">", iterative: true},
+                    {gt: "leap.end", tid: 1,accept:"close", close: "0.5",  closeOperator: "<"}
                 ]}
         ]
 
@@ -206,6 +217,8 @@ var container;
                 hands.updateHand(args.token.hand,color);
                     document.getElementById("up").textContent = "gesto pan da completare";
                     //hands.newHand(controller.hand,null);
+               gestureSegment.requestAnimation(args.token.palmPosition);
+               
                
                 
             });
@@ -213,10 +226,10 @@ var container;
     djestit.onComplete(
             ":has(:root > .gt:val(\"leap.move\"))",
             pan,
-            function(/*args*/) {                
+            function(args) {                
                 console.log("action move ");
                 document.getElementById("up").textContent = "gesto pan da completare";
-
+//gestureSegment.requestAnimation(args.token.palmPosition);
 
          });
 

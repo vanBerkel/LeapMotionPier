@@ -670,6 +670,7 @@
 
     djestit._groundTerms = [];
     djestit.registerGroundTerm = function(name, initFunction) {
+        console.log('registerGroundTerm');
         this._groundTerms[name] = initFunction;
     };
     

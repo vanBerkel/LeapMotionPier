@@ -203,8 +203,10 @@
         }   
         
     };
-
-    djestit.registerGroundTerm("leap.start", djestit.leapExpression);
+    
+    
+console.log('registerGroundTerm 1');
+     djestit.registerGroundTerm("leap.start", djestit.leapExpression);
     djestit.registerGroundTerm("leap.move", djestit.leapExpression);
     djestit.registerGroundTerm("leap.end", djestit.leapExpression);
 
@@ -221,6 +223,9 @@
             this.root = root; //attributo term, rappresenta la lista
         } else {
             this.root = djestit.expression(root); // analizza root il file json
+           
+            
+            
         }
         this.sequence = new LeapStateSequence(capacity);
        /*? leapToEvent eventToLeap differenza?? */
