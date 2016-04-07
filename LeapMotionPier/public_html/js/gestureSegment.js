@@ -55,7 +55,7 @@
                     console.log(position);
                     pt.position.fromArray(_position(position));
                     gestureSegment.helpMesh.add(pt);
-                    gestureSegment.render();
+                   // gestureSegment.render();
                     //console.log('ho perso il tram delle 6');
                     return;
                     

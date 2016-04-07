@@ -28,10 +28,10 @@
         this.id =-1;
         this.palmPosition =[];
         if ((leap.hands!==null) && (leap.hands.length>0)){*/
-            this.close = leap.grabStrength; // solo una mano
-            //hand.grabStrength
-            this.id = leap.id;
-            this.palmPosition = leap.palmPosition;
+        this.close = leap.grabStrength; // solo una mano
+        //hand.grabStrength
+        this.id = leap.id;
+        this.palmPosition = leap.palmPosition;
         //}
 
         this.hand=leap;
@@ -40,7 +40,8 @@
         
         
         //this.id = leap.id; 
-        this.type = type; // _LEAPSTART _LEAPMOVE _LEAPEND
+        this.type = type; // _LEAPSTART _LEAPMOVE _LEAPEND identifica se la mano e' sopra il leap
+        this.type2; //identifica se il ground term e' di tipo start move e complete
     };
     LeapToken.prototype = new djestit.Token();
     djestit.LeapToken = LeapToken;
@@ -49,6 +50,7 @@
     var LeapStart = function(id) {
         this.init();
         this.id = id;
+        this.type = "Start";
       //  console.log('dentro leapStar ->' + id );
         this._accepts = function(token) {
    
@@ -65,6 +67,7 @@
         this.init();
         this.id = id;
         //console.log('dentro leapMove ->' + id );
+        this.type = "Move";
 
         this._accepts = function(token) {
             if (this.id && this.id !== null && this.id !== token.id) {
@@ -79,6 +82,8 @@
     var LeapEnd = function(id) {
         this.init();
         this.id = id;
+        this.type = "End";
+
        // console.log('dentro leapEnd ->' + id );
         this._accepts = function(token) {
             if (this.id && this.id !== null && this.id !== token.id) {
@@ -95,25 +100,40 @@
         this.init(capacity);
         this.leaps = [];
         this.l_index = [];
+        this.start = [];
 
 
         this.push = function(token) {
+            //salva solo gli ultimi 3 frame leap, quindi il leap start si perde
+            
             this._push(token);
           
             switch (token.type) {
                 case _LEAPSTART:
                     this.leaps[token.id] = [];
                     this.l_index[token.id] = 0;
+                    this.start[token.id] = null;
                 case _LEAPMOVE:
                 case _LEAPEND:
                   //  console.log('token id > ' + token.id + 'capacity > ' + this.capacity + 'type> ' + token.type + 'length> '+this.leaps[token.id].length);
+                   
                    
                     if (this.leaps[token.id].length < this.capacity) {
                         this.leaps[token.id].push(token);
                         //console.log('push del token in posizione ' + token.id);
                     } else {
+                        /*salva il ground Term Start per confrontarlo con il ground Term End */
+                       /* if ((this.leaps[token.id][this.l_index[token.id]].type2 === "Start")&& (this.start[token.id]===null)){
+                            console.log("token startTTTTTTTTTTTTTTTTTTTTTTTTTTTTT " + this.leaps[token.id][this.l_index[token.id]]);
+                            this.start[token.id] = this.leaps[token.id][this.l_index[token.id]];
+                              
+                       }*/
+                       //console.log("token startTTTTTTTTTTTTTTTTTTTTTTTTTTTTT " + this.start[token.id].palmPosition[0]);
+                        
                         this.leaps[token.id][this.l_index[token.id]] = token;
                     }
+                    
+                    
                     this.l_index[token.id] = (this.l_index[token.id] + 1) % this.capacity;
                     break;
 
@@ -122,16 +142,25 @@
             
         };
 
-        this.getById = function(delay, id) {
+/*ritorna i dati del token leap in un determinato istante*/
+       this.getById = function(delay, id) {
             var pos = 0;
             if(this.leaps[id].length < this.capacity){
-                pos = this.t_index[id] - delay -1;
+                pos = this.l_index[id] - delay -1;
             }else{
-                pos =(this.t_index[id] - delay - 1  + this.capacity) % this.capacity;
+                pos =(this.l_index[id] - delay - 1  + this.capacity) % this.capacity;
             }
             return this.leaps[id] [pos];
         };
+        
+        this.getStart = function(id) {
+            return this.start[id];
+        };
+        
+        
+        
     };
+
 
     LeapStateSequence.prototype = new djestit.StateSequence();
 
@@ -154,9 +183,18 @@
             if (json.accept){
                
                 term.accepts = function(token) {
-                    var flag = true;
+                   var flag = true;
+                    var flag2 = true;
                     var accept = json.accept.toString().split(";");
                     
+                    //la posizione di end dev essere diversa dalla posizione di start
+                   
+                    
+                   
+                    
+                    
+                    
+
                     for(i=0; i<accept.length; i++){
                         //var itemName = accept[i].toString().split()
                         switch (accept[i]){
@@ -184,16 +222,66 @@
                                 }
                                 
                                 break;
-                            
+                            case "move":
+                                
+
+                                if (json.asse){ //spostamento 
+                                     switch (json.asse){
+                                            case "x":
+                                             /*  var curr = token.sequence.getById(2, 1);
+                                                    //spostamento verso dx                                                        
+                                                    flag2 = (Math.abs(token.palmPosition[0]) - Math.abs(curr.palmPosition[0]))> (0)&&
+                                                            (Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))> (-1)
+                                                            &&(Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))<(1)&&
+                                                            (Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))> (-1)
+                                                            &&(Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))<(1);                                          ;
+                                                *///console.log("attuale posizione" + token.palmPosition[0] + "precedente Posizione" +curr.palmPosition[0] + "flag" + flag2);
+                                                break;
+                                            case "y":
+                                                //flag = token.close < json.close;
+                                                break;
+                                            case "z":
+                                                //flag = token.close ===json.close;
+                                                break;
+                                            
+                                        }
+                                   
+                                }    
+                                else{
+                                    console.log("you forgot to define the item asse");
+                                }
                             
                         }
                             
                         
                         
                     }
-                    
-                    
-                    return flag;
+                    if (flag){
+                        token.type2 = term.type;
+                        if (token.type2 === "Start"){
+                            token.sequence.start[json.tid] = token;
+                            console.log("tokenkkkkkk");
+                        }
+                         if (term.type==="End"){
+                        if (token.sequence.start[json.tid]!=null){
+                             var curr = token.sequence.start[json.tid];
+                            //spostamento verso dx                                                        
+                            flag = flag && (Math.abs(token.palmPosition[0]) - Math.abs(curr.palmPosition[0]))> (20);/*&&
+                                    (Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))> (-1)
+                                    &&(Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))<(1)&&
+                                    (Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))> (-1)
+                                    &&(Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))<(1);                                          ;
+                       */ console.log("attuale posizione" + token.palmPosition[0] + "precedente Posizione" +curr.palmPosition[0] + "flag" + flag2);
+
+
+                        }
+                       
+                        
+                    }
+                        
+                        
+                    }
+                    return flag ;
                 };
                 
                     
@@ -203,6 +291,8 @@
         }   
         
     };
+    
+
     
     
 console.log('registerGroundTerm 1');
@@ -320,12 +410,14 @@ console.log('registerGroundTerm 1');
             }, 200);
         });       */ 
                 
-          this.element.streaming();     
+        this.element.streaming();     
         this.element.on('hand', function(hand){
 
+            
+            
             hands.updateHand(hand,null);
             
-          self._raiseLeapEvent(hand, _LEAPMOVE);
+            self._raiseLeapEvent(hand, _LEAPMOVE);
 
         });
 

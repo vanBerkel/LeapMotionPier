@@ -189,9 +189,9 @@ var container;
     /* il campo accept contiene tutti i campi che servono per accettare il ground di riferimento */
     var pan = {
         sequence: [
-            {gt: "leap.start", tid: 1 , accept:"close", close: "0.8",  closeOperator: ">" },
+            {gt: "leap.start", tid: 1 , accept:"close", close: "0.5",  closeOperator: ">" },
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"close", close: "0.8",  closeOperator: ">", iterative: true},
+                    {gt: "leap.move", tid: 1, accept:"close", close: "0.5",  closeOperator: ">", iterative: true},
                     {gt: "leap.end", tid: 1,accept:"close", close: "0.5",  closeOperator: "<"}
                 ]}
         ]
@@ -218,7 +218,7 @@ var container;
                     document.getElementById("up").textContent = "gesto pan da completare";
                     //hands.newHand(controller.hand,null);
                gestureSegment.requestAnimation(args.token.palmPosition);
-               
+              //  args.token.type2 = "Start";
                
                 
             });
@@ -229,6 +229,15 @@ var container;
             function(args) {                
                 console.log("action move ");
                 document.getElementById("up").textContent = "gesto pan da completare";
+                 var old1 = args.token.sequence.getById(2, 1);
+                 var curr1 = args.token.sequence.getById(0, 1);
+                 
+                 
+                 /*console.log("spostamento orizzontale asse x" + old1.palmPosition[0] + " secondo " + curr1.palmPosition[0]);
+                 console.log("spostamento verticale asse y" + old1.hand.palmPosition[1] + " secondo " + curr1.hand.palmPosition[1]);
+                 console.log("spostamento avanti indietro asse z" + old1.hand.palmPosition[2] + " secondo " + curr1.hand.palmPosition[2]);
+*/
+                
 //gestureSegment.requestAnimation(args.token.palmPosition);
 
          });
@@ -267,7 +276,7 @@ var container;
     var controller = new Leap.Controller();
 
 
-    var lsensor = new djestit.LeapSensor(controller, hands, input, 3);
+    var lsensor = new djestit.LeapSensor(controller, hands, input, 20);
 
 
   
