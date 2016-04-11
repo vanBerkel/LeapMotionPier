@@ -143,7 +143,7 @@ var container;
      //gestureSegment.requestAnimation();
     
     
-    
+    /*
     var term1 = new djestit.LeapStart(1);
     term1.type = "Start";
     term1.accepts = function(token) {
@@ -182,25 +182,35 @@ var container;
     
     var choiceiterative  = new djestit.Iterative([choice]);
     
-
+*/
    
     
     
     /* il campo accept contiene tutti i campi che servono per accettare il ground di riferimento */
-    var pan = {
+    var panx = {
         sequence: [
             {gt: "leap.start", tid: 1 , accept:"close", close: "0.5",  closeOperator: ">" },
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"close", close: "0.5",  closeOperator: ">", iterative: true},
-                    {gt: "leap.end", tid: 1,accept:"close", close: "0.5",  closeOperator: "<"}
+                    {gt: "leap.end", tid: 1,accept:"close;move", close: "0.5",  closeOperator: "<", asse: "x"}
                 ]}
         ]
 
     };
+ var pany = {
+        sequence: [
+            {gt: "leap.start", tid: 1 , accept:"close", close: "0.5",  closeOperator: ">" },
+            {disabling: [
+                    {gt: "leap.move", tid: 1, accept:"close", close: "0.5",  closeOperator: ">", iterative: true},
+                    {gt: "leap.end", tid: 1,accept:"close;move", close: "0.5",  closeOperator: "<", asse: "y"}
+                ]}
+        ]
 
+    };
    var input = {
         choice: [
-            pan
+            panx,
+            pany
         ],
         iterative: true
     };
@@ -208,56 +218,52 @@ var container;
     // cambia colore della mano verde
      djestit.onComplete(
             ":has(:root > .gt:val(\"leap.start\"))",
-            pan,
+            panx,
             function(args) {
                 console.log("line added " + args.token.palmPosition);
-               // document.getElementById("up").textContent="gesto pan da completare"
-                //currentLine = paintCanvas.addLine();
+
                var color = 0x52ce00;
                 hands.updateHand(args.token.hand,color);
                     document.getElementById("up").textContent = "gesto pan da completare";
-                    //hands.newHand(controller.hand,null);
-               gestureSegment.requestAnimation(args.token.palmPosition);
-              //  args.token.type2 = "Start";
+               gestureSegment.requestAnimation(args.token.palmPosition, "Start" , null,null);
+              
+            
                
                 
             });
    
     djestit.onComplete(
             ":has(:root > .gt:val(\"leap.move\"))",
-            pan,
+            panx,
             function(args) {                
                 console.log("action move ");
                 document.getElementById("up").textContent = "gesto pan da completare";
-                 var old1 = args.token.sequence.getById(2, 1);
-                 var curr1 = args.token.sequence.getById(0, 1);
-                 
-                 
-                 /*console.log("spostamento orizzontale asse x" + old1.palmPosition[0] + " secondo " + curr1.palmPosition[0]);
-                 console.log("spostamento verticale asse y" + old1.hand.palmPosition[1] + " secondo " + curr1.hand.palmPosition[1]);
-                 console.log("spostamento avanti indietro asse z" + old1.hand.palmPosition[2] + " secondo " + curr1.hand.palmPosition[2]);
-*/
+                 var old1 = args.token.sequence.start[1].palmPosition;
+                 var curr1 = args.token.sequence.getById(1, 1).palmPosition;
+   
+                 gestureSegment.requestAnimation(args.token.palmPosition, "Move" , old1, curr1 );
                 
-//gestureSegment.requestAnimation(args.token.palmPosition);
-
          });
+     
+
 
     djestit.onError(
             ":has(:root > .gt:val(\"leap.move\"))",
-            pan,
+            panx,
             function(args) {                
                 console.log("action move error ");
                 document.getElementById("up").textContent = "gesto pan sbagliato";
                  var color = 0xce1b2e;
                 hands.updateHand(args.token.hand,color);
-
+                 
+                   
 
          });
 
 
 
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
-            pan,
+            panx,
             function(args) {                
                     console.log("action end ");
                     document.getElementById("gesture").textContent = "gesto pan completato";
@@ -265,7 +271,17 @@ var container;
                 hands.updateHand(args.token.hand,color);
          });
      
+    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
+            pany,
+            function(args) {                
+                    console.log("action end ");
+                    document.getElementById("gesture").textContent = "gesto pan Y completato";
+                var color = 0x65ff00;
+                hands.updateHand(args.token.hand,color);
+   });
+     
           
+  
   
 
   

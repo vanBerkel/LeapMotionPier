@@ -184,16 +184,10 @@
                
                 term.accepts = function(token) {
                    var flag = true;
-                    var flag2 = true;
+                   
                     var accept = json.accept.toString().split(";");
                     
                     //la posizione di end dev essere diversa dalla posizione di start
-                   
-                    
-                   
-                    
-                    
-                    
 
                     for(i=0; i<accept.length; i++){
                         //var itemName = accept[i].toString().split()
@@ -228,16 +222,33 @@
                                 if (json.asse){ //spostamento 
                                      switch (json.asse){
                                             case "x":
-                                             /*  var curr = token.sequence.getById(2, 1);
-                                                    //spostamento verso dx                                                        
-                                                    flag2 = (Math.abs(token.palmPosition[0]) - Math.abs(curr.palmPosition[0]))> (0)&&
+                                                if (token.sequence.start[json.tid]!=null){
+                                             
+                                               var curr = token.sequence.start[json.tid];
+                                                    //spostamento verso dx       
+                                               if (term.type==="End"){
+                                                    flag =  flag && (Math.abs(token.palmPosition[0]) - Math.abs(curr.palmPosition[0]))> (20);/*&&
                                                             (Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))> (-1)
                                                             &&(Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))<(1)&&
                                                             (Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))> (-1)
-                                                            &&(Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))<(1);                                          ;
-                                                *///console.log("attuale posizione" + token.palmPosition[0] + "precedente Posizione" +curr.palmPosition[0] + "flag" + flag2);
+                                                            &&(Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))<(1);        */                                  ;
+                                               }}
+                                               
+                                            //console.log("attuale posizione" + token.palmPosition[0] + "precedente Posizione" +curr.palmPosition[0] + "flag" + flag2);
                                                 break;
                                             case "y":
+                                                 if (token.sequence.start[json.tid]!=null){
+                                             
+                                               var curr = token.sequence.start[json.tid];
+                                                 if (term.type==="End"){
+                                                    flag =  flag && (Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))> (20);/*&&
+                                                            (Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))> (-1)
+                                                            &&(Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))<(1)&&
+                                                            (Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))> (-1)
+                                                            &&(Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))<(1);        */                                  ;
+                                               }
+                                               
+                                                 }
                                                 //flag = token.close < json.close;
                                                 break;
                                             case "z":
@@ -262,22 +273,11 @@
                             token.sequence.start[json.tid] = token;
                             console.log("tokenkkkkkk");
                         }
-                         if (term.type==="End"){
-                        if (token.sequence.start[json.tid]!=null){
-                             var curr = token.sequence.start[json.tid];
-                            //spostamento verso dx                                                        
-                            flag = flag && (Math.abs(token.palmPosition[0]) - Math.abs(curr.palmPosition[0]))> (20);/*&&
-                                    (Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))> (-1)
-                                    &&(Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))<(1)&&
-                                    (Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))> (-1)
-                                    &&(Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))<(1);                                          ;
-                       */ console.log("attuale posizione" + token.palmPosition[0] + "precedente Posizione" +curr.palmPosition[0] + "flag" + flag2);
-
-
-                        }
+                         
+                       
                        
                         
-                    }
+                  
                         
                         
                     }
@@ -392,7 +392,7 @@ console.log('registerGroundTerm 1');
                         self.root.reset();
                         
                     }
-                   if (self.root.state === djestit.ERROR){
+                   if ((self.root.state === djestit.ERROR) || (!self.root.lookahead(token))){
                          console.log("gesto non completato");
                         self.root.reset();
                         

@@ -20,7 +20,7 @@
 
     gestureSegment.helpMesh = new THREE.Mesh();
 
-    var requestAnimation = function(position) {
+    var requestAnimation = function(position, type , position2 ,position3) {
         var _requestAnimation = function() {
             var _position = function() {
             };
@@ -28,7 +28,7 @@
             _position = gestureSegment.drawSegment;
               //var _complete = onComplete;
             var pause = 60;
-            var i = 600 + pause;
+           // var i = 600 + pause;
             window.requestAnimationFrame(frame);
 
 
@@ -49,31 +49,50 @@
                 return;*/
                //if (i > pause) {            //visualizza sullo schermo il gesto da testare
 
+                if (type==="Start"){  
                     var pt = new THREE.Mesh(new THREE.SphereGeometry(10),
-                            new THREE.MeshPhongMaterial());
-                    pt.material.color.setHex(0xff0000);
-                    console.log(position);
-                    pt.position.fromArray(_position(position));
-                    gestureSegment.helpMesh.add(pt);
-                   // gestureSegment.render();
-                    //console.log('ho perso il tram delle 6');
-                    return;
-                    
-                //}
+                                new THREE.MeshPhongMaterial());
+                        pt.material.color.setHex(0xff0000);
+                        console.log(position);
+                        pt.position.fromArray(_position(position));
+                        gestureSegment.helpMesh.add(pt);
+                       // gestureSegment.render();
+                        //console.log('ho perso il tram delle 6');
+                        
+                }
+                else 
+                   if (type==="Move"){
+                       //come eliminare il precedente segmento?
+                       /* opzione a -> disegnare con bianco vecchia linea
+                        *   problemi -> si colora di bianco anche la mano!! */
+                       
+                       //eliminazione della retta precendente
+                                var geometry = new THREE.Geometry();
+                                var material = new THREE.LineBasicMaterial({
+                                    color: 0xffffff
+                                });
+				geometry.vertices.push(new THREE.Vector3(position2[0],position2[1],position2[2]));
+                                geometry.vertices.push(new THREE.Vector3(position3[0],position3[1],position3[2]));
+				var mesh = new THREE.Line( geometry, material );
+				gestureSegment.helpMesh.add(mesh);
+                                
+                                var geometry2 = new THREE.Geometry();
+                                var material2 = new THREE.LineBasicMaterial({
+                                    color: 0x0000ff
+                                });
+				geometry2.vertices.push(new THREE.Vector3(position2[0],position2[1],position2[2]));
+                                geometry2.vertices.push(new THREE.Vector3(position[0],position[1],position[2]));
+				var mesh2 = new THREE.Line( geometry2, material2 );
+				gestureSegment.helpMesh.add(mesh2);
+                               
+                   
+                   }	
+                                
+                   
+                   return;
+               
 
-               /* if (i === 0) {
-                    while (gestureSegment.helpMesh.children.length > 0) {
-                        gestureSegment.helpMesh.remove(gestureSegment.helpMesh.children[0]);
-                    }
-                    gestureSegment.render();
-                    if (_complete) {
-                        _complete();
-                    }
-                    return;
-                }*/
-
-                i--;
-                window.requestAnimationFrame(frame);
+              
 
             }
         };
