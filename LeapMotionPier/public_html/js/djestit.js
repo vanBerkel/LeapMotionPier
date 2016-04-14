@@ -674,9 +674,9 @@
         this._groundTerms[name] = initFunction;
     };
     
+
     var _select = function(selector, json){
         if(window.JSONSelect){
-             
             return window.JSONSelect.match(selector, json);
         }else{
             console.log("In order to use the json selection capabilies, you must \
@@ -690,7 +690,7 @@
         var  selection = djestit._select(selector, expression);
         for(var i = 0; i<selection.length; i++){
             selection[i][event] = f;
-          
+
         }
          
         
@@ -700,6 +700,8 @@
     djestit.onComplete = function(selector, expression, f){
         djestit._attachHandler(selector, expression, "complete", f);
     };
+    
+
     
     djestit.onError = function(selector, expression, f){
         djestit._attachHandler(selector, expression, "error", f);

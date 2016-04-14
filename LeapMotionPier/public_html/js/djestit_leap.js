@@ -5,39 +5,38 @@
     var _LEAPSTART = 1;
     var _LEAPMOVE = 2;
     var _LEAPEND = 3;
+    
+    var _HandClose = 0.7;
+    var _HandOpen = 0.2;
+    
+    var _thumbOpen = 0.7;
+    
 
    
-//leap e' il frame da analizzare
+//leap e' il frame da analizzare considera la mano 
     var LeapToken = function(leap, type) {
              
-      /*  this.hands = leap.hands; // array che contiene tutte le informazioni delle mani  
-        this.gestures = leap.gestures; // array che contiene tutti i gesti identificati da questo frame
-        this.tools = leap.tools; // array di tool identificati in questo frame
-        this.pointables = leap.pointables; // array che contiene tutti i puntatori dita e o tool
-        this.fingers = leap.fingers; //array che contiene tutte le informazioni delle dita 
+        /* grabStrength > 0.5 close hand */
+        if (leap.grabStrength >= _HandClose)
+            this.close = true;
+        else
+            this.close = false;
         
-
-        this.currentFrameRate = leap.currentFrameRate; // tempo che il controller produce frame!! diverso a seconda dell applicazione
-        //normalizza la posizione da 0 a 1
-        this.interactionBox = leap.iteractionBox; 
-        //tempo in microsecondi da quando l app ha avuto inizio
-        this.timestamp = leap.timestamp;
-        this.valid = leap.valid;
+        if (leap.grabStrength <= _HandOpen)
+            this.open = true;
+        else 
+            this.open = false;
         
-        this.close =-1;
-        this.id =-1;
-        this.palmPosition =[];
-        if ((leap.hands!==null) && (leap.hands.length>0)){*/
-        this.close = leap.grabStrength; // solo una mano
-        //hand.grabStrength
+        
+        this.thumb = leap.thumb;
+        this.arm = leap.arm; // for the wrist arm.basis[0]
+        
+        
+        
+        
         this.id = leap.id;
         this.palmPosition = leap.palmPosition;
-        //}
-
         this.hand=leap;
-        //this.close = leap.hands[0].grabStrength;
-       // console.log("this.close" + close + " grab" + leap.hands[0].grabStrength);
-        
         
         //this.id = leap.id; 
         this.type = type; // _LEAPSTART _LEAPMOVE _LEAPEND identifica se la mano e' sopra il leap
@@ -46,12 +45,12 @@
     LeapToken.prototype = new djestit.Token();
     djestit.LeapToken = LeapToken;
 
-    /* quando deve venire richiamato */
+   
+   
     var LeapStart = function(id) {
         this.init();
         this.id = id;
         this.type = "Start";
-      //  console.log('dentro leapStar ->' + id );
         this._accepts = function(token) {
    
             if (this.id && this.id !== null && this.id !== token.id) {
@@ -66,9 +65,7 @@
     var LeapMove = function(id) {
         this.init();
         this.id = id;
-        //console.log('dentro leapMove ->' + id );
         this.type = "Move";
-
         this._accepts = function(token) {
             if (this.id && this.id !== null && this.id !== token.id) {
                 return false;
@@ -83,8 +80,6 @@
         this.init();
         this.id = id;
         this.type = "End";
-
-       // console.log('dentro leapEnd ->' + id );
         this._accepts = function(token) {
             if (this.id && this.id !== null && this.id !== token.id) {
                 return false;
@@ -95,45 +90,27 @@
     LeapEnd.prototype = new djestit.GroundTerm();
     djestit.LeapEnd = LeapEnd;
 
-/* controlla lo i GroundTerm */
+//capacity indica quanti frame devono essere salvati
     var LeapStateSequence = function(capacity) {
         this.init(capacity);
         this.leaps = [];
         this.l_index = [];
-        this.start = [];
-
-
+        this.start = []; //identifica il frame di partenza
         this.push = function(token) {
-            //salva solo gli ultimi 3 frame leap, quindi il leap start si perde
-            
             this._push(token);
           
             switch (token.type) {
                 case _LEAPSTART:
                     this.leaps[token.id] = [];
                     this.l_index[token.id] = 0;
-                    this.start[token.id] = null;
+                    this.start[token.id]=0;
                 case _LEAPMOVE:
                 case _LEAPEND:
-                  //  console.log('token id > ' + token.id + 'capacity > ' + this.capacity + 'type> ' + token.type + 'length> '+this.leaps[token.id].length);
-                   
-                   
                     if (this.leaps[token.id].length < this.capacity) {
                         this.leaps[token.id].push(token);
-                        //console.log('push del token in posizione ' + token.id);
                     } else {
-                        /*salva il ground Term Start per confrontarlo con il ground Term End */
-                       /* if ((this.leaps[token.id][this.l_index[token.id]].type2 === "Start")&& (this.start[token.id]===null)){
-                            console.log("token startTTTTTTTTTTTTTTTTTTTTTTTTTTTTT " + this.leaps[token.id][this.l_index[token.id]]);
-                            this.start[token.id] = this.leaps[token.id][this.l_index[token.id]];
-                              
-                       }*/
-                       //console.log("token startTTTTTTTTTTTTTTTTTTTTTTTTTTTTT " + this.start[token.id].palmPosition[0]);
-                        
-                        this.leaps[token.id][this.l_index[token.id]] = token;
+                       this.leaps[token.id][this.l_index[token.id]] = token;
                     }
-                    
-                    
                     this.l_index[token.id] = (this.l_index[token.id] + 1) % this.capacity;
                     break;
 
@@ -152,12 +129,7 @@
             }
             return this.leaps[id] [pos];
         };
-        
-        this.getStart = function(id) {
-            return this.start[id];
-        };
-        
-        
+     
         
     };
 
@@ -183,76 +155,102 @@
             if (json.accept){
                
                 term.accepts = function(token) {
-                   var flag = true;
-                   
+                    var flag = true;
                     var accept = json.accept.toString().split(";");
-                    
-                    //la posizione di end dev essere diversa dalla posizione di start
+                          console.log("thumb " + token.thumb.direction[0]);
 
                     for(i=0; i<accept.length; i++){
-                        //var itemName = accept[i].toString().split()
                         switch (accept[i]){
                             case "close":
-                               
-                                if (json.close){
-                                    if (json.closeOperator){
-                                        switch (json.closeOperator){
-                                            case ">":
-                                                flag = token.close > json.close;
-                                                break;
-                                            case "<":
-                                                flag = token.close < json.close;
-                                                break;
-                                            case "=":
-                                                flag = token.close ===json.close;
-                                                break;
-                                            
-                                        }
-                                    }else
-                                        flag = token.close === json.close;
+                                flag =  flag && token.close;
+                                
+                                break;
+                            case "open":
+                                flag = flag && token.open;
+                                break;
+                            case "thumb":
+                                if (json.direction){
+                                    switch (json.direction){
+                                        case "x":        
+                                               switch (term.type){
+                                                   case "Move":
+                                                       break;
+                                                   case "End":
+                                                     flag = flag && (Math.abs(token.thumb.direction[0]))>= _thumbOpen;
+                                                       break;
+                                                   case "Start":
+                                                      flag = flag && (Math.abs(token.thumb.direction[0]))>= _thumbOpen;
+                                                       break;
+                                               }
+                                            break;
+                                        case "y":
+                                                switch (term.type){
+                                                   case "Move":
+                                                       break;
+                                                   case "End":
+                                                      flag = flag && (Math.abs(token.thumb.direction[1]))>= _thumbOpen;
+                                                       break;
+                                                   case "Start":
+                                                      flag = flag && (Math.abs(token.thumb.direction[1]))>= _thumbOpen;
+                                                       break;
+                                               }
+                                            break;
+                                        
+                                        case "z":
+                                                 switch (term.type){
+                                                   case "Move":
+                                                       break;
+                                                   case "End":
+                                                       //flag = flag && (Math.abs(token.thumb.direction[2])=> _thumbOpen);
+                                                       break;
+                                                   case "Start":
+                                                       //flag = flag && (Math.abs(token.thumb.direction[2])=> _thumbOpen);
+                                                       break;
+                                               }
+                                            break;
+                                        
+                                        
+                                    }
+                                    
+                                    
                                 }
                                 else{
-                                    console.log("you forgot to define the item close");
+                                    console.log("you forgot the item direction for the thumb case");
                                 }
                                 
                                 break;
                             case "move":
-                                
-
                                 if (json.asse){ //spostamento 
                                      switch (json.asse){
-                                            case "x":
+                                            case "x"://spostamento asse x
                                                 if (token.sequence.start[json.tid]!=null){
-                                             
-                                               var curr = token.sequence.start[json.tid];
-                                                    //spostamento verso dx       
-                                               if (term.type==="End"){
-                                                    flag =  flag && (Math.abs(token.palmPosition[0]) - Math.abs(curr.palmPosition[0]))> (20);/*&&
-                                                            (Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))> (-1)
-                                                            &&(Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))<(1)&&
-                                                            (Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))> (-1)
-                                                            &&(Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))<(1);        */                                  ;
-                                               }}
+                                                    var curr = token.sequence.start[json.tid];
+
+                                                    if (term.type==="End"){
+                                                        flag =  flag && (Math.abs(token.palmPosition[0]) - Math.abs(curr.palmPosition[0]))> (20);/*&&
+                                                                (Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))> (-1)
+                                                                &&(Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))<(1)&&
+                                                                (Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))> (-1)
+                                                                &&(Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))<(1);        */                                  ;
+                                                    }
+                                                }
                                                
-                                            //console.log("attuale posizione" + token.palmPosition[0] + "precedente Posizione" +curr.palmPosition[0] + "flag" + flag2);
                                                 break;
                                             case "y":
                                                  if (token.sequence.start[json.tid]!=null){
                                              
-                                               var curr = token.sequence.start[json.tid];
-                                                 if (term.type==="End"){
-                                                    flag =  flag && (Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))> (20);/*&&
-                                                            (Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))> (-1)
-                                                            &&(Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))<(1)&&
-                                                            (Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))> (-1)
-                                                            &&(Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))<(1);        */                                  ;
-                                               }
+                                                    var curr = token.sequence.start[json.tid];
+                                                     if (term.type==="End"){
+                                                         flag =  flag && (Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))> (20);/*&&
+                                                                 (Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))> (-1)
+                                                                 &&(Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))<(1)&&
+                                                                 (Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))> (-1)
+                                                                 &&(Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))<(1);        */                                  ;
+                                                    }
                                                
                                                  }
-                                                //flag = token.close < json.close;
                                                 break;
                                             case "z":
-                                                //flag = token.close ===json.close;
                                                 break;
                                             
                                         }
@@ -273,13 +271,6 @@
                             token.sequence.start[json.tid] = token;
                             console.log("tokenkkkkkk");
                         }
-                         
-                       
-                       
-                        
-                  
-                        
-                        
                     }
                     return flag ;
                 };
@@ -295,7 +286,6 @@
 
     
     
-console.log('registerGroundTerm 1');
      djestit.registerGroundTerm("leap.start", djestit.leapExpression);
     djestit.registerGroundTerm("leap.move", djestit.leapExpression);
     djestit.registerGroundTerm("leap.end", djestit.leapExpression);
@@ -305,6 +295,10 @@ console.log('registerGroundTerm 1');
 /*tiene in memoria l'elenco delle gesture che sono state definite e trasforma
  * le informazioni ricevute dal frame leap contenente le informazioni sulle mani,
  * in token che ne rappresentano il movimento compiuto ora
+ * element rappresenta il controller del leap
+ * hands rappresenta la mano da disegnare sullo schermo
+ * root rappresenta la lista dei groundTerm
+ * 
  */
     var LeapSensor = function(element, hands, root, capacity) {
         
@@ -372,23 +366,19 @@ console.log('registerGroundTerm 1');
         };
 
 /* raiseLeapEvent
- *  viene lanciato quando?????
  * @param {type} event
  * @param {type} name example _LEAPSTART
  * @returns {undefined}
  * 
  */
         this._raiseLeapEvent = function(frame, name) {
-         //console.log("raiseLeapEvent");
                 var token = self.generateToken(name, frame);
                 if (token.id !== undefined){
-                    //console.log("token.id -> " + token.id);
-                
+               
                     self.root.fire(token);
-                    //self.root.lookahead(token);
                     console.log("state -> " + self.root.state + "  self ->" + self.root.lookahead(token));
                     if (self.root.state === djestit.COMPLETE){
-                         console.log("gesto completato");
+                        console.log("gesto completato");
                         self.root.reset();
                         
                     }
@@ -412,18 +402,14 @@ console.log('registerGroundTerm 1');
                 
         this.element.streaming();     
         this.element.on('hand', function(hand){
-
-            
-            
             hands.updateHand(hand,null);
             
             self._raiseLeapEvent(hand, _LEAPMOVE);
 
         });
-
-
              this.element.use('handHold');
              this.element.use('handEntry');
+            
              this.element.on('handFound', function(hand) {
                 document.getElementById("up").textContent = "fai un gesto";
                 self._raiseLeapEvent(hand,_LEAPSTART);

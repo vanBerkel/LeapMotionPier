@@ -6,9 +6,7 @@ var previousFrame;
 
 var pauseOnGrab = false;
 var paused = false;
-//coda circolare
-var listFrame = [];
-var max =20;
+
 //testa e lung = 0 coda creata
 var testa = 0; 
 var lung = 0;
@@ -142,73 +140,109 @@ var container;
     
      //gestureSegment.requestAnimation();
     
+/*
     
-    /*
     var term1 = new djestit.LeapStart(1);
     term1.type = "Start";
     term1.accepts = function(token) {
-        return token.type && token.close >0.5;
+          if (token.type && token.close > 0.5){
+            console.log("line added " + token.palmPosition);
+            var color = 0x52ce00;
+            hands.updateHand(token.hand,color);
+            document.getElementById("up").textContent = "gesto pan da completare";
+            gestureSegment.requestAnimation(token.palmPosition, "Start" , null,null);
+            return true;
+        }
+        return false;
+       
     };
-    
     
     var term2 = new djestit.LeapMove(1);
     term2.type = "Move" ;
     term2.accepts = function(token) {
-        return token.type && token.close ===1;
-        //token.palmPosition != term1.tok
+        
+        if (token.type && token.close >0.5 ){
+            console.log("action move ");
+            document.getElementById("up").textContent = "gesto pan da completare";
+            var old1 = token.sequence.start[1].palmPosition;
+            var curr1 = token.sequence.getById(1, 1).palmPosition;
+            gestureSegment.requestAnimation(token.palmPosition, "Move" , old1, curr1 );
+            return true;
+        }
+        return false;
+        
     };
     
     var term3 = new djestit.LeapEnd(1);
     term3.type = "End" ;
-    //term3.accepts = open ;
     term3.accepts = function(token) {
-       
-        return token.type && token.close <0.5;
+        if (token.type && token.close <0.5 && (Math.abs(token.palmPosition[0]) - Math.abs(curr.palmPosition[0]))> (20)){
+                console.log("action end ");
+                document.getElementById("gesture").textContent = "gesto pan X completato";
+                var color = 0x65ff00;
+                hands.updateHand(token.hand,color);
+                return true;
+        }
+        return false;
     };
     
-    // document.getElementById("up").textContent="gesto pan eseguito correttamente";
-    var term4 = new djestit.LeapStart(1);
-    var iterative2 =  new djestit.Iterative(term4);
+
     var iterative = new djestit.Iterative(term2);
     
     var disabling = new djestit.Disabling([iterative, term3]);
 
     var sequencePan = new djestit.Sequence ([term1, disabling]);
     
-
-   
-    
     var choice = new djestit.Choice([sequencePan]);
     
-    var choiceiterative  = new djestit.Iterative([choice]);
+
     
-*/
+
    
-    
+    /*choice.onComplete = function(term1){
+        if (term1.state === djestit.COMPLETE)
+            console.log("onComplete");
+        else 
+            console.log("onError");
+
+        
+    };
+            
+      */     
     
     /* il campo accept contiene tutti i campi che servono per accettare il ground di riferimento */
     var panx = {
         sequence: [
-            {gt: "leap.start", tid: 1 , accept:"close", close: "0.5",  closeOperator: ">" },
+            {gt: "leap.start", tid: 1 , accept:"close"},
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"close", close: "0.5",  closeOperator: ">", iterative: true},
-                    {gt: "leap.end", tid: 1,accept:"close;move", close: "0.5",  closeOperator: "<", asse: "x"}
+                    {gt: "leap.move", tid: 1, accept:"close", iterative: true},
+                    {gt: "leap.end", tid: 1,accept:"open;move", asse: "x"}
+                ]}
+        ]
+    };
+ var pany = {
+        sequence: [
+            {gt: "leap.start", tid: 1 , accept:"close" },
+            {disabling: [
+                    {gt: "leap.move", tid: 1, accept:"close", iterative: true},
+                    {gt: "leap.end", tid: 1,accept:"open;move", asse: "y"}
                 ]}
         ]
 
     };
- var pany = {
+    var thumbUp = {
         sequence: [
-            {gt: "leap.start", tid: 1 , accept:"close", close: "0.5",  closeOperator: ">" },
+            {gt: "leap.start", tid: 1 , accept:"close;thumb", direction: "x" },
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"close", close: "0.5",  closeOperator: ">", iterative: true},
-                    {gt: "leap.end", tid: 1,accept:"close;move", close: "0.5",  closeOperator: "<", asse: "y"}
+                    {gt: "leap.move", tid: 1, accept:"close;thumb", direction:"y", iterative: true},
+                    {gt: "leap.end", tid: 1,accept:"close;thumb", direction: "y"}
                 ]}
         ]
 
     };
    var input = {
         choice: [
+            thumbUp,
             panx,
             pany
         ],
@@ -225,13 +259,17 @@ var container;
                var color = 0x52ce00;
                 hands.updateHand(args.token.hand,color);
                     document.getElementById("up").textContent = "gesto pan da completare";
-               gestureSegment.requestAnimation(args.token.palmPosition, "Start" , null,null);
-              
-            
-               
-                
+               //gestureSegment.requestAnimation(args.token.palmPosition, "Start" , null,null);   
             });
-   
+    djestit.onComplete(
+            ":has(:root > .gt:val(\"leap.start\"))",
+            thumbUp,
+            function(args) {
+                var color = 0x52ce00;
+                hands.updateHand(args.token.hand,color);
+                    document.getElementById("up").textContent = "gesto thumbUp da completare";
+               //gestureSegment.requestAnimation(args.token.palmPosition, "Start" , null,null);   
+            });
     djestit.onComplete(
             ":has(:root > .gt:val(\"leap.move\"))",
             panx,
@@ -240,7 +278,6 @@ var container;
                 document.getElementById("up").textContent = "gesto pan da completare";
                  var old1 = args.token.sequence.start[1].palmPosition;
                  var curr1 = args.token.sequence.getById(1, 1).palmPosition;
-   
                  gestureSegment.requestAnimation(args.token.palmPosition, "Move" , old1, curr1 );
                 
          });
@@ -255,9 +292,6 @@ var container;
                 document.getElementById("up").textContent = "gesto pan sbagliato";
                  var color = 0xce1b2e;
                 hands.updateHand(args.token.hand,color);
-                 
-                   
-
          });
 
 
@@ -265,40 +299,31 @@ var container;
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
             panx,
             function(args) {                
-                    console.log("action end ");
-                    document.getElementById("gesture").textContent = "gesto pan completato";
+                console.log("action end ");
+                document.getElementById("gesture").textContent = "gesto pan X completato";
                 var color = 0x65ff00;
                 hands.updateHand(args.token.hand,color);
          });
-     
+    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
+            thumbUp,
+            function(args) {                
+                console.log("action end ");
+                document.getElementById("gesture").textContent = "gesto pan thumb Up completato";
+                var color = 0x65ff00;
+                hands.updateHand(args.token.hand,color);
+         });
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
             pany,
             function(args) {                
-                    console.log("action end ");
-                    document.getElementById("gesture").textContent = "gesto pan Y completato";
+                console.log("action end ");
+                document.getElementById("gesture").textContent = "gesto pan Y completato";
                 var color = 0x65ff00;
                 hands.updateHand(args.token.hand,color);
    });
      
-          
-  
-  
-
-  
-    
- // var controller = Leap.loop({enableGestures:true}, function(frame){});
-//gesture pan
-
     var controller = new Leap.Controller();
+    var lsensor = new djestit.LeapSensor(controller, hands, input, 3);
 
-
-    var lsensor = new djestit.LeapSensor(controller, hands, input, 20);
-
-
-  
-    var previousFrame = null;
-
-    var flag = false;
 
  
 
