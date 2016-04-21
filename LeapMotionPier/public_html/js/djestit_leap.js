@@ -9,35 +9,52 @@
     var _HandClose = 0.7;
     var _HandOpen = 0.2;
     
-    var _thumbOpen = 0.7;
+    var _fingerOpen = 0.7;
     
 
    
 //leap e' il frame da analizzare considera la mano 
     var LeapToken = function(leap, type) {
-             
-        /* grabStrength > 0.5 close hand */
-        if (leap.grabStrength >= _HandClose)
-            this.close = true;
-        else
-            this.close = false;
-        
-        if (leap.grabStrength <= _HandOpen)
-            this.open = true;
-        else 
-            this.open = false;
-        
-        
-        this.thumb = leap.thumb;
-        this.arm = leap.arm; // for the wrist arm.basis[0]
-        
-        
-        
-        
-        this.id = leap.id;
-        this.palmPosition = leap.palmPosition;
-        this.hand=leap;
-        
+        //if (type!=_LEAPEND){
+        if(leap.gestures.length > 0){
+            console.log("gesturesLeap");
+            leap.gestures.forEach(function(gesture){
+                this.gesture = gesture.type;
+            });
+        }else
+            this.gesture = null;
+            
+            this.hand = leap.hands[0];
+            /* grabStrength > 0.5 close hand */
+            //console.log(leap);
+            if (this.hand.grabStrength >= _HandClose)
+                this.close = true;
+            else
+                this.close = false;
+
+            if (this.hand.grabStrength <= _HandOpen)
+                this.open = true;
+            else 
+                this.open = false;
+            
+            this.indexFinger = this.hand.indexFinger;
+            console.log("indexFinger",this.indexFinger);
+
+            this.thumb = this.hand.thumb;
+            this.arm = this.hand.arm; // for the wrist arm.basis[0]
+           // this.armX = this.arm.basis[0];
+            //console.log("rotationX", this.hand.rotationAxis());
+            
+            //console.log("rotationAngle",this.hand.rotationAngle());
+
+            console.log("roll", this.hand.roll());
+
+
+
+            this.palmPosition = this.hand.palmPosition;
+        //this.hand=leap;
+       // }
+        this.id = this.hand.id;
         //this.id = leap.id; 
         this.type = type; // _LEAPSTART _LEAPMOVE _LEAPEND identifica se la mano e' sopra il leap
         this.type2; //identifica se il ground term e' di tipo start move e complete
@@ -157,7 +174,7 @@
                 term.accepts = function(token) {
                     var flag = true;
                     var accept = json.accept.toString().split(";");
-                          console.log("thumb " + token.thumb.direction[0]);
+                          console.log("arm " + token.arm);
 
                     for(i=0; i<accept.length; i++){
                         switch (accept[i]){
@@ -168,6 +185,19 @@
                             case "open":
                                 flag = flag && token.open;
                                 break;
+                            case "circle":
+                                if (json.finger){
+                                    switch(json.finger){
+                                        case "index":
+                                            flag = flag ;//&& (Math.abs(token.indexFinger.direction[2])=> _fingerOpen);
+                                            break;
+                                    }
+                                }
+                                if (term.type==="End"){
+                                    flag = flag && (token.gesture==="circle");
+                                    console.log(token.gesture + "circle end" + flag);
+                                }
+                                break;
                             case "thumb":
                                 if (json.direction){
                                     switch (json.direction){
@@ -176,10 +206,10 @@
                                                    case "Move":
                                                        break;
                                                    case "End":
-                                                     flag = flag && (Math.abs(token.thumb.direction[0]))>= _thumbOpen;
+                                                     flag = flag && (Math.abs(token.thumb.direction[0]))>= _fingerOpen;
                                                        break;
                                                    case "Start":
-                                                      flag = flag && (Math.abs(token.thumb.direction[0]))>= _thumbOpen;
+                                                      flag = flag && (Math.abs(token.thumb.direction[0]))>= _fingerOpen;
                                                        break;
                                                }
                                             break;
@@ -188,10 +218,10 @@
                                                    case "Move":
                                                        break;
                                                    case "End":
-                                                      flag = flag && (Math.abs(token.thumb.direction[1]))>= _thumbOpen;
+                                                      flag = flag && (Math.abs(token.thumb.direction[1]))>= _fingerOpen;
                                                        break;
                                                    case "Start":
-                                                      flag = flag && (Math.abs(token.thumb.direction[1]))>= _thumbOpen;
+                                                      flag = flag && (Math.abs(token.thumb.direction[1]))>= _fingerOpen;
                                                        break;
                                                }
                                             break;
@@ -201,10 +231,10 @@
                                                    case "Move":
                                                        break;
                                                    case "End":
-                                                       //flag = flag && (Math.abs(token.thumb.direction[2])=> _thumbOpen);
+                                                       //flag = flag && (Math.abs(token.thumb.direction[2])=> _fingerOpen);
                                                        break;
                                                    case "Start":
-                                                       //flag = flag && (Math.abs(token.thumb.direction[2])=> _thumbOpen);
+                                                       //flag = flag && (Math.abs(token.thumb.direction[2])=> _fingerOpen);
                                                        break;
                                                }
                                             break;
@@ -326,7 +356,6 @@
                     
                     var leapId = this.firstId(token.id);
                     this.eventToLeap[token.id] = leapId;
-                    //? non si può scrivere direttamente leap.identifier
                     this.leapToEvent[leapId] = [token.id];
                     token.id = leapId;
                     //console.log("LeapStart > " +token.id);
@@ -400,30 +429,60 @@
             }, 200);
         });       */ 
                 
-        this.element.streaming();     
-        this.element.on('hand', function(hand){
-            hands.updateHand(hand,null);
-            
-            self._raiseLeapEvent(hand, _LEAPMOVE);
+        this.element.streaming();    
+        
 
+        var previousFrame = null;
+        this.element.on('frame', function(frame){
+            if (frame.valid){
+            //setInterval (function(){
+            //primo frame da analizzare
+                if ((frame.hands.length >0)&&(previousFrame ===null)){
+                    self._raiseLeapEvent(frame,_LEAPSTART);
+                    previousFrame=frame;
+                }
+                else //secondo frame da analizzare
+                    if (frame.hands.length>0){
+                        self._raiseLeapEvent(frame,_LEAPMOVE);
+                    }
+                        else {// ultimo frame
+                            previousFrame=null;
+                            //self._raiseLeapEvent(frame,_LEAPEND);
+                        }
+            //},5000);
+  
+        }
         });
-             this.element.use('handHold');
-             this.element.use('handEntry');
-            
-             this.element.on('handFound', function(hand) {
+        
+        
+        
+        this.element.use('handHold');
+        this.element.use('handEntry');
+        
+        this.element.on('hand', function(hand) {
+                //self._raiseLeapEvent(hand,_LEAPMOVE);
+                hands.updateHand(hand,null);
+        });
+        this.element.on('handFound', function(hand) {
                 document.getElementById("up").textContent = "fai un gesto";
-                self._raiseLeapEvent(hand,_LEAPSTART);
+               // self._raiseLeapEvent(hand,_LEAPSTART);
+
                 hands.newHand(hand,null);
-            });
-             this.element.on('handLost', function(hand) {
+        });
+        this.element.on('handLost', function(hand) {
                 document.getElementById("up").textContent = "metti la mano sopra il leap motion";
-                
-                self._raiseLeapEvent( hand,_LEAPEND);
                 hands.lostHand(hand);
-            });
+               // self._raiseLeapEvent(hand,_LEAPMOVE)
+        });
+        
+        
+        
+        
+       
+            
 
            
-        this.element.connect();
+     this.element.connect();
         
         
         

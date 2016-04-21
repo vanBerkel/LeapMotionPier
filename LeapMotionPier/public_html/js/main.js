@@ -230,6 +230,14 @@ var container;
         ]
 
     };
+    /*
+     * 
+     * @type type
+     * 
+     * possibile che la mano si sposti 
+     * gestire con il movimento di polso e non sulla posizione del pollice
+     * 
+     */
     var thumbUp = {
         sequence: [
             {gt: "leap.start", tid: 1 , accept:"close;thumb", direction: "x" },
@@ -240,11 +248,39 @@ var container;
         ]
 
     };
+    
+    //stretching hand from a fist
+    /*
+     * 
+     * @type type
+     * 
+     * la mano si dovrebbe aprire verso lo schermo e non verso il leap!!
+     * possibile che la mano si sposti 
+     */
+    var stretchHand = {
+        sequence: [
+            {gt: "leap.start", tid: 1 , accept:"close" },
+            {disabling: [
+                    {gt: "leap.move", tid: 1, accept:"close", iterative: true},
+                    {gt: "leap.end", tid: 1,accept:"open" }
+                ]}
+        ]
+
+    };
+    
+    
+   var circle = {
+        sequence: [
+            {gt: "leap.start", tid: 1 , accept:"circle", finger: "index"},
+            {disabling: [
+                    {gt: "leap.end", tid: 1,accept:"circle", iterative:true}
+                ]}
+        ]
+
+    };
    var input = {
         choice: [
-            thumbUp,
-            panx,
-            pany
+            circle
         ],
         iterative: true
     };
@@ -258,7 +294,7 @@ var container;
 
                var color = 0x52ce00;
                 hands.updateHand(args.token.hand,color);
-                    document.getElementById("up").textContent = "gesto pan da completare";
+                document.getElementById("up").textContent = "direction " + args.direction;
                //gestureSegment.requestAnimation(args.token.palmPosition, "Start" , null,null);   
             });
     djestit.onComplete(
@@ -267,7 +303,8 @@ var container;
             function(args) {
                 var color = 0x52ce00;
                 hands.updateHand(args.token.hand,color);
-                    document.getElementById("up").textContent = "gesto thumbUp da completare";
+                
+                    document.getElementById("up").textContent = "arm " + args.direction;
                //gestureSegment.requestAnimation(args.token.palmPosition, "Start" , null,null);   
             });
     djestit.onComplete(
@@ -275,7 +312,7 @@ var container;
             panx,
             function(args) {                
                 console.log("action move ");
-                document.getElementById("up").textContent = "gesto pan da completare";
+                document.getElementById("up").textContent = "arm " + args.direction;
                  var old1 = args.token.sequence.start[1].palmPosition;
                  var curr1 = args.token.sequence.getById(1, 1).palmPosition;
                  gestureSegment.requestAnimation(args.token.palmPosition, "Move" , old1, curr1 );
@@ -300,7 +337,7 @@ var container;
             panx,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent = "gesto pan X completato";
+                document.getElementById("gesture").textContent = "arm " + args.direction;
                 var color = 0x65ff00;
                 hands.updateHand(args.token.hand,color);
          });
@@ -320,7 +357,26 @@ var container;
                 var color = 0x65ff00;
                 hands.updateHand(args.token.hand,color);
    });
-     
+   
+   
+   djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
+            stretchHand,
+            function(args) {                
+                console.log("action end ");
+                document.getElementById("gesture").textContent = "gesture Stretching the hand from fist complete";
+                var color = 0x65ff00;
+                hands.updateHand(args.token.hand,color);
+   });
+   
+    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
+            circle,
+            function(args) {                
+                console.log("action end ");
+                document.getElementById("gesture").textContent = "gesture circle complete";
+                var color = 0x65ff00;
+                hands.updateHand(args.token.hand,color);
+   })
+   
     var controller = new Leap.Controller();
     var lsensor = new djestit.LeapSensor(controller, hands, input, 3);
 
