@@ -16,14 +16,32 @@
 //leap e' il frame da analizzare considera la mano 
     var LeapToken = function(leap, type) {
         //if (type!=_LEAPEND){
-        if(leap.gestures.length > 0){
-            console.log("gesturesLeap");
-            leap.gestures.forEach(function(gesture){
-                this.gesture = gesture.type;
-            });
-        }else
-            this.gesture = null;
-            
+        
+            if (leap.gestures.length>0){
+               // for (var i=0; i < leap.gestures.length; i++){
+                    this.gesture = leap.gestures[0];
+                    switch (this.gesture.type){
+                        case "circle":    
+                            if (this.gesture.normal){
+                                this.clockwise = false;
+                                var pointableID = this.gesture.pointableIds[0];
+                                var direction = leap.pointable(pointableID).direction;
+                                var dotProduct = Leap.vec3.dot(direction, this.gesture.normal);
+                                if (dotProduct  >  0) this.clockwise = true;
+                            }
+                            break;
+                        case "screenTap":
+                            //console.log(leap.gestures[leap.gestures.length-1]);
+                            break;
+                    }
+                    
+                    
+                //}
+                
+                
+            }
+  
+            this.pointable = leap.pointables;
             this.hand = leap.hands[0];
             /* grabStrength > 0.5 close hand */
             //console.log(leap);
@@ -38,7 +56,8 @@
                 this.open = false;
             
             this.indexFinger = this.hand.indexFinger;
-            console.log("indexFinger",this.indexFinger);
+            
+          //  console.log("indexFinger",this.indexFinger);
 
             this.thumb = this.hand.thumb;
             this.arm = this.hand.arm; // for the wrist arm.basis[0]
@@ -47,7 +66,7 @@
             
             //console.log("rotationAngle",this.hand.rotationAngle());
 
-            console.log("roll", this.hand.roll());
+           //ar, console.log("roll", this.hand.roll());
 
 
 
@@ -174,8 +193,6 @@
                 term.accepts = function(token) {
                     var flag = true;
                     var accept = json.accept.toString().split(";");
-                          console.log("arm " + token.arm);
-
                     for(i=0; i<accept.length; i++){
                         switch (accept[i]){
                             case "close":
@@ -185,18 +202,134 @@
                             case "open":
                                 flag = flag && token.open;
                                 break;
-                            case "circle":
-                                if (json.finger){
-                                    switch(json.finger){
-                                        case "index":
-                                            flag = flag ;//&& (Math.abs(token.indexFinger.direction[2])=> _fingerOpen);
-                                            break;
+                            case "press":
+                                
+                                    switch (term.type){
+                                    case "Move":
+                                        var index =0;
+                                        switch (json.finger){
+                                            case "thumb":
+                                                index =0;
+                                                break;
+                                            case "index":
+                                                //console.log ( "indexFinger " + token.pointable[1].id +"idPont" +  token.gesture.pointableIds[0]);
+                                                index =1;
+                                                break;
+                                            }
+                                            flag = flag && token.pointable[index].touchZone === "touching" ;
+                                     
+                                   // console.log("eccodi " + token.pointable);
+
+                                        break;
+                                    case "End":
+                                        if (token.gesture  && token.gesture.type === "screenTap"){
+                                            console.log("end press");
+                                            flag = flag  && token.gesture.state==="stop";
+                                            if (json.finger && token.pointable) {
+                                            var index =0;
+                                                switch (json.finger){
+                                                    case "thumb":
+                                                        index =0;
+                                                        break;
+                                                    case "index":
+                                                        //console.log ( "indexFinger " + token.pointable[1].id +"idPont" +  token.gesture.pointableIds[0]);
+                                                        index =1;
+                                                        break;
+                                                        
+                                                
+                                                
+                                                    }
+                                                    
+                                                    flag = flag && token.gesture.pointableIds[0] === token.pointable[index].id ;
+                                        }
                                     }
-                                }
-                                if (term.type==="End"){
-                                    flag = flag && (token.gesture==="circle");
-                                    console.log(token.gesture + "circle end" + flag);
-                                }
+                                        else
+                                            flag = false;
+                                        break;
+                                    case "Start":
+                                        var index =0;
+                                        switch (json.finger){
+                                            case "thumb":
+                                                index =0;
+                                                break;
+                                            case "index":
+                                                //console.log ( "indexFinger " + token.pointable[1].id +"idPont" +  token.gesture.pointableIds[0]);
+                                                index =1;
+                                                break;
+                                            }
+                                            flag = flag && token.pointable[index].touchZone === "touching" ;
+                                        break;
+                                    
+                                    
+                                    }
+                                
+                                break;
+                           /* case "semicircle"
+                                if (token.gesture  && token.gesture.type === "circle"){
+                                    switch (term.type){
+                                    case "Move":
+                                       // console.log("move circle" + token.gesture.progress);
+                                        flag = flag && token.gesture.progress<1;
+                                        if (json.clockwise!=null && token.clockwise!=null) {
+                                            flag = flag && this.token.clockwise === json.clockwise;                                           
+                                        }
+                                        
+                                        
+                                        break;
+                                    case "End":
+                                        //console.log("end circle" + token.gesture.progress);
+                                        flag = flag  && (token.gesture.progress>=0.5);
+                                        break;
+                                    }
+                                }else 
+                                    flag = false;
+                                break;
+                                break;*/
+                            case "circle":
+                                if (token.gesture  && token.gesture.type === "circle"){
+                                    switch (term.type){
+                                    case "Move":
+                                       // console.log("move circle" + token.gesture.progress);
+                                        flag = flag && token.gesture.progress<1;
+                                        
+                                        
+                                        
+                                        break;
+                                    case "End":
+                                        if (json.clockwise!=null && token.clockwise!=null) {                                          
+                                            flag = flag && token.clockwise === json.clockwise;                                           
+                                        }
+                                        //console.log("end circle" + token.gesture.progress);
+                                        flag = flag  && (token.gesture.progress>=1);
+                                        break;
+                                    case "Start":
+                                       // console.log("start circle" + token.gesture.state);
+                                        flag = flag && token.gesture.state==="start";
+                                        if (json.finger && token.pointable) {
+                                            var index =0;
+                                                switch (json.finger){
+                                                    case "thumb":
+                                                        index =0;
+                                                        break;
+                                                    case "index":
+                                                        //console.log ( "indexFinger " + token.pointable[1].id +"idPont" +  token.gesture.pointableIds[0]);
+                                                        index =1;
+                                                        break;
+                                                        
+                                                
+                                                
+                                                    }
+                                                    
+                                                    flag = flag && token.gesture.pointableIds[0] === token.pointable[index].id ;
+                                            //flag = flag && token.gesture.pointableIds === 
+                                            
+                                        }
+                                        break;
+                                    
+                                    
+                                    }
+                                }else 
+                                    flag = false;
                                 break;
                             case "thumb":
                                 if (json.direction){
@@ -299,7 +432,7 @@
                         token.type2 = term.type;
                         if (token.type2 === "Start"){
                             token.sequence.start[json.tid] = token;
-                            console.log("tokenkkkkkk");
+                           // console.log("tokenkkkkkk");
                         }
                     }
                     return flag ;
@@ -401,7 +534,7 @@
  * 
  */
         this._raiseLeapEvent = function(frame, name) {
-                var token = self.generateToken(name, frame);
+                var token = self.generateToken(name, frame,gesture);
                 if (token.id !== undefined){
                
                     self.root.fire(token);
@@ -443,6 +576,7 @@
                 }
                 else //secondo frame da analizzare
                     if (frame.hands.length>0){
+
                         self._raiseLeapEvent(frame,_LEAPMOVE);
                     }
                         else {// ultimo frame

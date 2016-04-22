@@ -268,19 +268,77 @@ var container;
 
     };
     
-    
-   var circle = {
-        sequence: [
-            {gt: "leap.start", tid: 1 , accept:"circle", finger: "index"},
+    /*
+     * 
+     * @type type
+     * circle identifica che si tratta di un gesto che contiene un cerchio
+     * finger indentifica il dito interessato per la gesture
+     * clockwise identifica se il cerchio dev'essere in senso orario o antiorario
+     */
+   var circleClockwise = {
+       sequence: [
+            {gt: "leap.start", tid: 1 , accept:"circle" , finger:"index"},
             {disabling: [
-                    {gt: "leap.end", tid: 1,accept:"circle", iterative:true}
+                    {gt: "leap.move", tid: 1, accept:"circle", iterative: true},
+                    {gt: "leap.end", tid: 1,accept:"circle",clockwise:true  }
                 ]}
         ]
 
     };
+    
+    /* 
+     * si potrebbe anche omettere il groundTerm move e anche il groundTermStart
+     * 
+     * press indentifica che la mano si sposta in avanti
+     * finger identifica il dito interessato che fara' la gesture
+     * 
+     * 
+     * 
+     */
+    var pressingIndex = {
+       sequence: [
+            {gt: "leap.start", tid: 1 , accept:"press" , finger:"index"},
+            {disabling: [
+                    {gt: "leap.move", tid: 1, accept:"press", finger:"index", iterative: true},
+                    {gt: "leap.end", tid: 1, accept:"press", finger:"index"}
+                ]}
+        ]
+
+    };
+    var pressingIndex = {
+       sequence: [
+            {gt: "leap.start", tid: 1 , accept:"press" , finger:"index"},
+            {disabling: [
+                    {gt: "leap.move", tid: 1, accept:"press", finger:"index", iterative: true},
+                    {gt: "leap.end", tid: 1, accept:"press", finger:"index"}
+                ]}
+        ]
+
+    };
+    
+  /*
+     * 
+     * @type type
+     * semicircle identifica che si tratta di un gesto che contiene un semicerchio
+     * finger indentifica il dito interessato per la gesture
+     * clockwise identifica se il cerchio dev'essere in senso orario o antiorario
+     * dim definisce il raggio minimo ed e' espresso in mm
+     */
+   var semicircleClockwise = {
+       sequence: [
+            {gt: "leap.start", tid: 1 , accept:"circle" , finger:"index"},
+            {disabling: [
+                    {gt: "leap.move", tid: 1, accept:"semicircle", iterative: true},
+                    {gt: "leap.end", tid: 1,accept:"semicircle", dim: 200, clockwise:true }
+                ]}
+        ]
+
+    };
+    
+    
    var input = {
         choice: [
-            circle
+            circleClockwise
         ],
         iterative: true
     };
@@ -369,18 +427,39 @@ var container;
    });
    
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
-            circle,
+            circleClockwise,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent = "gesture circle complete";
+                document.getElementById("gesture").textContent = "gesture circle clockwise with the index Finger complete";
                 var color = 0x65ff00;
                 hands.updateHand(args.token.hand,color);
-   })
+   });
+    
+    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
+            pressingIndex,
+            function(args) {                
+                console.log("action end ");
+                document.getElementById("gesture").textContent = "gesture pressing a Buttom with the index Finger complete";
+                var color = 0x65ff00;
+                hands.updateHand(args.token.hand,color);
+   });
    
-    var controller = new Leap.Controller();
+   
+       djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
+            semicircleClockwise,
+            function(args) {                
+                console.log("action end ");
+                document.getElementById("gesture").textContent = "gesture semicircle clockwise with the index Finger complete";
+                var color = 0x65ff00;
+                hands.updateHand(args.token.hand,color);
+   });
+   
+    var controller = new Leap.Controller({enableGesture: true});
     var lsensor = new djestit.LeapSensor(controller, hands, input, 3);
 
+ 
 
+        
  
 
    
