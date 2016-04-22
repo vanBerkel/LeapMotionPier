@@ -264,36 +264,14 @@
                                     }
                                 
                                 break;
-                           /* case "semicircle"
-                                if (token.gesture  && token.gesture.type === "circle"){
-                                    switch (term.type){
-                                    case "Move":
-                                       // console.log("move circle" + token.gesture.progress);
-                                        flag = flag && token.gesture.progress<1;
-                                        if (json.clockwise!=null && token.clockwise!=null) {
-                                            flag = flag && this.token.clockwise === json.clockwise;                                           
-                                        }
-                                        
-                                        
-                                        break;
-                                    case "End":
-                                        //console.log("end circle" + token.gesture.progress);
-                                        flag = flag  && (token.gesture.progress>=0.5);
-                                        break;
-                                    }
-                                }else 
-                                    flag = false;
-                                break;
-                                break;*/
+
                             case "circle":
                                 if (token.gesture  && token.gesture.type === "circle"){
                                     switch (term.type){
                                     case "Move":
-                                       // console.log("move circle" + token.gesture.progress);
+                                        console.log("move circle" + token.gesture.progress);
                                         flag = flag && token.gesture.progress<1;
-                                        
-                                        
-                                        
+
                                         break;
                                     case "End":
                                         if (json.clockwise!=null && token.clockwise!=null) {                                          
@@ -303,7 +281,7 @@
                                         flag = flag  && (token.gesture.progress>=1);
                                         break;
                                     case "Start":
-                                       // console.log("start circle" + token.gesture.state);
+                                      //console.log("start circle" + token.gesture.state);
                                         flag = flag && token.gesture.state==="start";
                                         if (json.finger && token.pointable) {
                                             var index =0;
@@ -323,7 +301,7 @@
                                                     flag = flag && token.gesture.pointableIds[0] === token.pointable[index].id ;
                                             //flag = flag && token.gesture.pointableIds === 
                                             
-                                        }
+                                        }console.log("start circle" + token.gesture.state + flag);
                                         break;
                                     
                                     

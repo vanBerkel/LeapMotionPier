@@ -316,24 +316,7 @@ var container;
 
     };
     
-  /*
-     * 
-     * @type type
-     * semicircle identifica che si tratta di un gesto che contiene un semicerchio
-     * finger indentifica il dito interessato per la gesture
-     * clockwise identifica se il cerchio dev'essere in senso orario o antiorario
-     * dim definisce il raggio minimo ed e' espresso in mm
-     */
-   var semicircleClockwise = {
-       sequence: [
-            {gt: "leap.start", tid: 1 , accept:"circle" , finger:"index"},
-            {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"semicircle", iterative: true},
-                    {gt: "leap.end", tid: 1,accept:"semicircle", dim: 200, clockwise:true }
-                ]}
-        ]
-
-    };
+ 
     
     
    var input = {
@@ -445,14 +428,7 @@ var container;
    });
    
    
-       djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
-            semicircleClockwise,
-            function(args) {                
-                console.log("action end ");
-                document.getElementById("gesture").textContent = "gesture semicircle clockwise with the index Finger complete";
-                var color = 0x65ff00;
-                hands.updateHand(args.token.hand,color);
-   });
+      
    
     var controller = new Leap.Controller({enableGesture: true});
     var lsensor = new djestit.LeapSensor(controller, hands, input, 3);
