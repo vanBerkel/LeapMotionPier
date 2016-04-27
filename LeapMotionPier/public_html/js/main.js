@@ -319,31 +319,56 @@ var container;
     
     var handClap = {
        sequence: [
-            {gt: "leap.start", tid: 1 , accept:"2hands", separate : true},
+            {gt: "leap.start", tid: 1 , accept:"2hands;palm", palmZY:"up", separate : true},
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"2hands", separate : true, iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"2hands", separate: false}
+                    {gt: "leap.move", tid: 1, accept:"2hands;palm", palmZY:"up", separate : true, iterative: true},
+                    {gt: "leap.end", tid: 1, accept:"2hands;palm", palmZY:"up", separate: false}
                 ]}
         ]
 
     };
     
+    
+    /*palm identifica la posizione della mano rispetto gli assi x ed y */
     var pullString = {
        sequence: [
-            {gt: "leap.start", tid: 1 , accept:"close;position",y:100},
+            {gt: "leap.start", tid: 1 , accept:"close;position;palm",y:100, palmXY:"up"},
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"close", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"close;move", asse: "y", direction: "updown"}
+                    {gt: "leap.move", tid: 1, accept:"close;palm", palmXY:"up", iterative: true},
+                    {gt: "leap.end", tid: 1, accept:"close;move;palm", palmXY:"up", asse: "y", directionY: "updown"}
                 ]}
         ]
 
     };
- 
+ /*Drawing a counterclockwise semicircle
+  * 
+  */
+    var semicircle1 = {
+     
+             sequence: [
+            {gt: "leap.start", tid: 1 , accept:"press" , finger:"index"},
+            {disabling: [
+                    {gt: "leap.move", tid: 1, accept:"", iterative: true},
+                    {gt: "leap.end", tid: 1, accept:"move;position", x:0, asse: "x;y", directionY: "downup", directionX:"leftright"}
+                ]}]
+
+    };
     
+    var semicircle2 ={sequence : [       
+            {gt: "leap.start", tid: 1 , accept:"position;",x:0},
+            {disabling: [
+                    {gt: "leap.move", tid: 1, accept:"", iterative: true},
+                    {gt: "leap.end", tid: 1, accept:"move;", asse: "x;y", directionY: "updown", directionX:"leftright"}
+                ]}]};
+        
+                
+    var semicircle = {
+        sequence : 
+                [semicircle1,semicircle2]};
     
    var input = {
         choice: [
-            pullString
+            semicircle
             
         ],
         iterative: true
@@ -466,8 +491,49 @@ var container;
                 document.getElementById("gesture").textContent = "gesture pulling a string downward complete";
                 var color = 0x65ff00;
                 hands.updateHand(args.token.hand,color);
+   });/*
+       djestit.onComplete( ":has(:root > .gt:val(\"leap.start\"))",
+            semicircle1,
+            function(args) {                
+                console.log("action end ");
+                document.getElementById("gesture").textContent = "gesture start semicircle complete";
+                var color = 0x65ff02;
+                hands.updateHand(args.token.hand,color);
    });
-   
+    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
+            semicircle1,
+            function(args) {                
+                console.log("action end ");
+                document.getElementById("gesture").textContent = "gesture semicircle complete";
+                var color = 0x65ff00;
+                hands.updateHand(args.token.hand,color);
+   });
+   /*
+          djestit.onComplete( ":has(:root > .gt:val(\"leap.start\"))",
+            semicircle2,
+            function(args) {                
+                console.log("action end ");
+                document.getElementById("gesture").textContent = "gesture start semicircle 222complete";
+                var color = 0x65ff02;
+                hands.updateHand(args.token.hand,color);
+   });
+    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
+            semicircle1,
+            function(args) {                
+                console.log("action end ");
+                document.getElementById("gesture").textContent = "gesture semicircle 22complete";
+                var color = 0x65ff00;
+                hands.updateHand(args.token.hand,color);});
+            */
+    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
+            semicircle,
+            function(args) {                
+                console.log("action end ");
+                document.getElementById("gesture").textContent = "gesture semicircle 222222complete";
+                var color = 0x65ff00;
+                hands.updateHand(args.token.hand,color);});    
+            
+            
     var controller = new Leap.Controller({enableGesture: true});
     var lsensor = new djestit.LeapSensor(controller, hands, input, 3);
 
