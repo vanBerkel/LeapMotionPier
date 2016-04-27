@@ -11,6 +11,8 @@
     
     var _fingerOpen = 0.7;
     
+    var _handClapDistance = 45;
+    
 
    
 //leap e' il frame da analizzare considera la mano 
@@ -43,6 +45,18 @@
   
             this.pointable = leap.pointables;
             this.hand = leap.hands[0];
+            if (leap.hands.length >1){
+                this.hands2 = leap.hands[1];
+                console.log(this.hand.palmPosition[0]- this.hands2.palmPosition[0] + "ssss");
+
+                if (Math.abs((this.hand.palmPosition[0] - this.hands2.palmPosition[0])) < _handClapDistance){
+                    this.separate = false;
+                }
+                else 
+                    this.separate = true;
+                
+            }
+           
             /* grabStrength > 0.5 close hand */
             //console.log(leap);
             if (this.hand.grabStrength >= _HandClose)
@@ -197,7 +211,37 @@
                         switch (accept[i]){
                             case "close":
                                 flag =  flag && token.close;
-                                
+                                console.log(token.palmPosition[1] + "y" + token.close);
+
+                                break;
+                            case "position":
+                                if (json.y){
+                                    console.log(token.palmPosition[1] + term.type);
+                                    flag = flag && token.palmPosition[1] > json.y;
+                                    
+                                    
+                                }
+                                 if (json.x){
+                                     flag = flag && token.palmPosition[0] > json.x;
+
+                                    
+                                    
+                                }
+                                 if (json.z){
+                                   flag = flag && token.palmPosition[2] > json.z;
+
+                                    
+                                    
+                                }
+                                break;
+                            case "2hands":
+                                if (token.hands2){
+                                        console.log(json.separate + " "+ token.separate + " eccoci 0");
+                                        flag = flag && (json.separate === token.separate)
+
+                                }
+                                else
+                                    flag = false;
                                 break;
                             case "open":
                                 flag = flag && token.open;
@@ -364,7 +408,7 @@
                                 if (json.asse){ //spostamento 
                                      switch (json.asse){
                                             case "x"://spostamento asse x
-                                                if (token.sequence.start[json.tid]!=null){
+                                                if (token.sequence.start[json.tid]!==null){
                                                     var curr = token.sequence.start[json.tid];
 
                                                     if (term.type==="End"){
@@ -378,15 +422,24 @@
                                                
                                                 break;
                                             case "y":
-                                                 if (token.sequence.start[json.tid]!=null){
-                                             
+                                                 if (token.sequence.start[json.tid]!==null){
+                                                    
                                                     var curr = token.sequence.start[json.tid];
                                                      if (term.type==="End"){
-                                                         flag =  flag && (Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))> (20);/*&&
-                                                                 (Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))> (-1)
-                                                                 &&(Math.abs(token.palmPosition[1]) - Math.abs(curr.palmPosition[1]))<(1)&&
-                                                                 (Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))> (-1)
-                                                                 &&(Math.abs(token.palmPosition[2]) - Math.abs(curr.palmPosition[2]))<(1);        */                                  ;
+                                                         switch(json.direction){
+                                                             case "updown":
+                                                                 console.log("entraaa" + curr.palmPosition[1] + " esciii " + token.palmPosition[1]);
+                                                                 flag =  flag && ((curr.palmPosition[1]) - (token.palmPosition[1]))> (20);
+                                                                 break;
+                                                             case "downup":
+                                                                 flag =  flag && ((curr.palmPosition[1]) - (token.palmPosition[1]))< (20);
+                                                                 break;
+                                                             default:
+                                                                 flag =  flag && (Math.abs((curr.palmPosition[1]) - (token.palmPosition[1])))> (20);
+                                                                 break;
+                                                             
+                                                         }
+                                                                        
                                                     }
                                                
                                                  }

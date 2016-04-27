@@ -316,12 +316,35 @@ var container;
 
     };
     
+    
+    var handClap = {
+       sequence: [
+            {gt: "leap.start", tid: 1 , accept:"2hands", separate : true},
+            {disabling: [
+                    {gt: "leap.move", tid: 1, accept:"2hands", separate : true, iterative: true},
+                    {gt: "leap.end", tid: 1, accept:"2hands", separate: false}
+                ]}
+        ]
+
+    };
+    
+    var pullString = {
+       sequence: [
+            {gt: "leap.start", tid: 1 , accept:"close;position",y:100},
+            {disabling: [
+                    {gt: "leap.move", tid: 1, accept:"close", iterative: true},
+                    {gt: "leap.end", tid: 1, accept:"close;move", asse: "y", direction: "updown"}
+                ]}
+        ]
+
+    };
  
     
     
    var input = {
         choice: [
-            circleClockwise
+            pullString
+            
         ],
         iterative: true
     };
@@ -427,8 +450,23 @@ var container;
                 hands.updateHand(args.token.hand,color);
    });
    
-   
-      
+    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
+            handClap,
+            function(args) {                
+                console.log("action end ");
+                document.getElementById("gesture").textContent = "gesture hand clap complete";
+                var color = 0x65ff00;
+                hands.updateHand(args.token.hand,color);
+   });
+         
+    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
+            pullString,
+            function(args) {                
+                console.log("action end ");
+                document.getElementById("gesture").textContent = "gesture pulling a string downward complete";
+                var color = 0x65ff00;
+                hands.updateHand(args.token.hand,color);
+   });
    
     var controller = new Leap.Controller({enableGesture: true});
     var lsensor = new djestit.LeapSensor(controller, hands, input, 3);
