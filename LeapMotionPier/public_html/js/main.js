@@ -359,20 +359,37 @@ var container;
     };
     
     var semicircle2 ={sequence : [       
-            {gt: "leap.start", tid: 1 , accept:"press", finger:"index", },
+            {gt: "leap.start", tid: 1 , accept:"press;position", finger:"index", position:"center" },
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"", iterative: true},
                     {gt: "leap.end", tid: 1, accept:"move;", asse: "x;y", directionY: "updown", directionX:"leftright"}
                 ]}]};
         
-                
+      /*
+       * 
+       * @type type
+       * 
+       * attenzione bastagirare la mano sia aperta che chiusa e funziona
+       */
+    var wristclockwise = {
+       sequence: [
+            {gt: "leap.start", tid: 1 , accept:"palm", palmXY:"normalDown" },
+            {disabling: [
+                    {gt: "leap.move", tid: 1, accept:"", iterative: true},
+                    {gt: "leap.end", tid: 1, accept:"palm", palmXY:"normalUp"}
+                ]}
+        ]
+
+    };
+    
+    
     var semicircle = {
         sequence : 
                 [semicircle1,semicircle2]};
     
    var input = {
         choice: [
-            semicircle1
+            wristclockwise
             
         ],
         iterative: true
@@ -536,7 +553,13 @@ var container;
                 document.getElementById("gesture").textContent = "gesture semicircle 222222complete";
                 var color = 0x65ff00;
                 hands.updateHand(args.token.hand,color);});    
-            
+    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
+            wristclockwise,
+            function(args) {                
+                console.log("action end ");
+                document.getElementById("gesture").textContent = "gesture wristclockwise complete";
+                var color = 0x65ff00;
+                hands.updateHand(args.token.hand,color);});           
             
     var controller = new Leap.Controller({enableGesture: true});
     var lsensor = new djestit.LeapSensor(controller, hands, input, 3);

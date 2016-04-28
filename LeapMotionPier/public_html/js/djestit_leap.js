@@ -223,10 +223,10 @@
                             case "position":
                                 switch(json.position){
                                     case "up":
-                                        flag = flag && token.palmPosition[1] > 200;
+                                        flag = flag && token.palmPosition[1] > 100;
                                         break;
                                     case "down":
-                                        flag = flag && token.palmPosition[1] > 100;
+                                        flag = flag && token.palmPosition[1] < 100;
                                         break;
                                     case "right":
                                         flag = flag && token.palmPosition[0] > 80;
@@ -235,7 +235,8 @@
                                         flag = flag && token.palmPosition[0] < (-80);
                                         break;
                                     case "center":
-                                        console.log("position center not definied");
+                                        flag = flag && (token.palmPosition[0] >(-20) && token.palmPosition[0] <(20)) ;
+
                                         break;
                                     case "upright":
                                         console.log("position upright not definied");
@@ -269,11 +270,21 @@
                             case "palm":
                                 
                                 switch (json.palmXY){
-                                    case "normalUp":
-                                            console.log("normalUp PalmXY ancora da definire");
-                                        break;
+                                    case "normalUp"://mano rivolta verso l alto
+                                        if (token.hand.type === _rightHand){
+                                            flag = flag && ((token.hand.roll())> (5*Math.PI/6) ||((token.hand.roll()) <(-5*Math.PI/6)));
+                                        }
+                                        else{
+                                            flag = flag && ((token.hand.roll())< (Math.PI/12) ||((token.hand.roll()) > (-Math.PI/12)));
+                                        }
+                                         break;
                                     case "normalDown":
-                                            console.log("normalDown PalmXY ancora da definire");
+                                        if (token.hand.type === _rightHand){
+                                            flag = flag && ((token.hand.roll())< (Math.PI/12) ||((token.hand.roll()) > (-Math.PI/12)));
+                                        }
+                                        else{
+                                            flag = flag && ((token.hand.roll())> (5*Math.PI/6) ||((token.hand.roll()) <(-5*Math.PI/6)));
+                                        }
                                         break;
                                     case "up":
                                         if (token.hand.type === _leftHand){
@@ -306,11 +317,18 @@
                                             flag = flag && ((token.hand.pitch())> Math.PI/3) &&((token.hand.pitch()) < (2*Math.PI/3));
                                         }
                                         else{
+                                            console.log("token.hand" + token.hand.pitch() + "<-/3" + (-Math.PI/3) + ">-2/3" + -2*Math.PI/3);
                                             flag = flag && ((token.hand.pitch())<(-Math.PI/3)) &&((token.hand.pitch()) > (-2*Math.PI/3));                                         
                                         }
                                         break;
                                     case "down":
-                                        console.log("down PalmZY ancora da definire");
+                                         if (token.hand.type === _rightHand){
+                                            flag = flag && ((token.hand.pitch())> Math.PI/3) &&((token.hand.pitch()) < (2*Math.PI/3));
+                                        }
+                                        else{
+                                            flag = flag && ((token.hand.pitch())<(-Math.PI/3)) &&((token.hand.pitch()) > (-2*Math.PI/3));                                         
+                                        }
+                                        console.log("down PalmZY ancora da definire forse meglio");
 
                                         
                                         break;
