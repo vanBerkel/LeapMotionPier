@@ -13,7 +13,8 @@
     
     var _handClapDistance = 45;
     
-    
+    var positionUp = 200; // position y>100
+    var _handMove=20;
    var _leftHand = "left";
    var _rightHand = "right";
 
@@ -61,7 +62,7 @@
             }
            
            
-           console.log(this.hand.pitch());
+          // console.log(this.hand.pitch());
            
             /* grabStrength > 0.5 close hand */
             //console.log(leap);
@@ -220,23 +221,39 @@
 
                                 break;
                             case "position":
-                                if (json.y){
-                                    flag = flag && token.palmPosition[1] > json.y;
+                                switch(json.position){
+                                    case "up":
+                                        flag = flag && token.palmPosition[1] > 200;
+                                        break;
+                                    case "down":
+                                        flag = flag && token.palmPosition[1] > 100;
+                                        break;
+                                    case "right":
+                                        flag = flag && token.palmPosition[0] > 80;
+                                        break;
+                                    case "left":
+                                        flag = flag && token.palmPosition[0] < (-80);
+                                        break;
+                                    case "center":
+                                        console.log("position center not definied");
+                                        break;
+                                    case "upright":
+                                        console.log("position upright not definied");
+                                        break;
+                                    case "upleft":
+                                        console.log("position upleft not definied");
+                                        break;
+                                    case "downright":
+                                        console.log("position downright not definied");
+                                        break;
+                                    case "downleft":
+                                        console.log("position downleft not definied");
+                                        break;
+                                    
                                     
                                     
                                 }
-                                 if (json.x){
-                                     flag = flag && token.palmPosition[0] > json.x;
-
-                                    
-                                    
-                                }
-                                 if (json.z){
-                                   flag = flag && token.palmPosition[2] > json.z;
-
-                                    
-                                    
-                                }
+                               
                                 break;
                             case "2hands":
                                 if (token.hands2){
@@ -334,7 +351,7 @@
                                             }
                                             flag = flag && token.pointable[index].touchZone === "touching" ;
                                      
-                                   // console.log("eccodi " + token.pointable);
+                                  //console.log("eccodi " + token.pointable);
 
                                         break;
                                     case "End":
@@ -373,6 +390,7 @@
                                                 index =1;
                                                 break;
                                             }
+                                           // console.log("eccodi " + token.pointable);
                                             flag = flag && token.pointable[index].touchZone === "touching" ;
                                         break;
                                     
@@ -390,7 +408,7 @@
 
                                         break;
                                     case "End":
-                                        if (json.clockwise!=null && token.clockwise!=null) {                                          
+                                        if (json.clockwise!==null && token.clockwise!==null) {                                          
                                             flag = flag && token.clockwise === json.clockwise;                                           
                                         }
                                         //console.log("end circle" + token.gesture.progress);
@@ -482,20 +500,20 @@
                                 if (token.sequence.start[json.tid]!==null){    
                                 var curr = token.sequence.start[json.tid];
 
-                                for(i=0; i<asse.length; i++){
-                                     switch (asse[i]){
+                                for(var j=0; j<asse.length; j++){
+                                     switch (asse[j]){
                                             case "x"://spostamento asse x
                                                     if (term.type==="End"){
                                                         switch(json.directionX){
                                                              case "leftright":
-                                                                 console.log("entraaa" + curr.palmPosition[1] + " esciii " + token.palmPosition[1]);
-                                                                 flag =  flag && ((curr.palmPosition[1]) - (token.palmPosition[0]))> (20);
+                                                                 console.log("entraaaX" + curr.palmPosition[0] + " esciii " + token.palmPosition[0]);
+                                                                 flag =  flag && ((token.palmPosition[0]) - (curr.palmPosition[0]))> (_handMove);
                                                                  break;
                                                              case "rightleft":
-                                                                 flag =  flag && ((curr.palmPosition[0]) - (token.palmPosition[0]))< (20);
+                                                                 flag =  flag && ((curr.palmPosition[0]) - (token.palmPosition[0]))> (_handMove);
                                                                  break;
                                                              default:
-                                                                 flag =  flag && (Math.abs((curr.palmPosition[0]) - (token.palmPosition[0])))> (20);
+                                                                 flag =  flag && (Math.abs(Math.abs(curr.palmPosition[0]) - Math.abs(token.palmPosition[0])))> (_handMove);
                                                                  break;
                                                              
                                                         }
@@ -507,14 +525,14 @@
                                                      if (term.type==="End"){
                                                          switch(json.directionY){
                                                              case "updown":
-                                                                 console.log("entraaa" + curr.palmPosition[1] + " esciii " + token.palmPosition[1]);
-                                                                 flag =  flag && ((curr.palmPosition[1]) - (token.palmPosition[1]))> (20);
+                                                                 console.log("entraaaY" + curr.palmPosition[1] + " esciii " + token.palmPosition[1]);
+                                                                 flag =  flag && ((curr.palmPosition[1]) - (token.palmPosition[1]))> (_handMove);
                                                                  break;
                                                              case "downup":
-                                                                 flag =  flag && ((curr.palmPosition[1]) - (token.palmPosition[1]))< (20);
+                                                                 flag =  flag && ((token.palmPosition[1]) -(curr.palmPosition[1]))> (_handMove);
                                                                  break;
                                                              default:
-                                                                 flag =  flag && (Math.abs((curr.palmPosition[1]) - (token.palmPosition[1])))> (20);
+                                                                 flag =  flag && (Math.abs((curr.palmPosition[1]) - (token.palmPosition[1])))> (_handMove);
                                                                  break;
                                                              
                                                          }
@@ -524,6 +542,7 @@
                                                  
                                                 break;
                                             case "z":
+                                                console.log("move asse z not defined");
                                                 break;
                                             
                                         }
@@ -534,6 +553,7 @@
                                 else{
                                     console.log("you forgot to define the item asse");
                                 }
+                        break;
                             
                         }
                             

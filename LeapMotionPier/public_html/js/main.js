@@ -329,10 +329,14 @@ var container;
     };
     
     
-    /*palm identifica la posizione della mano rispetto gli assi x ed y */
+    /*palm identifica la posizione della mano rispetto gli assi x ed y 
+     * position: up, down, right, left, center, upright, upleft, downright,downleft 
+     *          identifica in quale posizione si trova la mano rispetto al leap motion considerando solo altezza e left rigth
+     *          ma non la profondita'
+     * */
     var pullString = {
        sequence: [
-            {gt: "leap.start", tid: 1 , accept:"close;position;palm",y:100, palmXY:"up"},
+            {gt: "leap.start", tid: 1 , accept:"close;position;palm", position:"up", palmXY:"up"},
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"close;palm", palmXY:"up", iterative: true},
                     {gt: "leap.end", tid: 1, accept:"close;move;palm", palmXY:"up", asse: "y", directionY: "updown"}
@@ -346,16 +350,16 @@ var container;
     var semicircle1 = {
      
              sequence: [
-            {gt: "leap.start", tid: 1 , accept:"press" , finger:"index"},
+            {gt: "leap.start", tid: 1 , accept:"press;position" , finger:"index", position:"left"},
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"move;position", x:0, asse: "x;y", directionY: "downup", directionX:"leftright"}
+                    {gt: "leap.end", tid: 1, accept:"move", asse: "x;y", directionY: "downup", directionX:"leftright"}
                 ]}]
 
     };
     
     var semicircle2 ={sequence : [       
-            {gt: "leap.start", tid: 1 , accept:"position;",x:0},
+            {gt: "leap.start", tid: 1 , accept:"press", finger:"index", },
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"", iterative: true},
                     {gt: "leap.end", tid: 1, accept:"move;", asse: "x;y", directionY: "updown", directionX:"leftright"}
@@ -368,7 +372,7 @@ var container;
     
    var input = {
         choice: [
-            semicircle
+            semicircle1
             
         ],
         iterative: true
@@ -526,7 +530,7 @@ var container;
                 hands.updateHand(args.token.hand,color);});
             */
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
-            semicircle,
+            semicircle2,
             function(args) {                
                 console.log("action end ");
                 document.getElementById("gesture").textContent = "gesture semicircle 222222complete";
