@@ -216,7 +216,7 @@ var container;
             {gt: "leap.start", tid: 1 , accept:"close"},
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"close", iterative: true},
-                    {gt: "leap.end", tid: 1,accept:"open;move", asse: "x"}
+                    {gt: "leap.end", tid: 1,accept:"open;move", move: "x"}
                 ]}
         ]
     };
@@ -225,7 +225,7 @@ var container;
             {gt: "leap.start", tid: 1 , accept:"close" },
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"close", iterative: true},
-                    {gt: "leap.end", tid: 1,accept:"open;move", asse: "y"}
+                    {gt: "leap.end", tid: 1,accept:"open;move", move: "y"}
                 ]}
         ]
 
@@ -339,7 +339,7 @@ var container;
             {gt: "leap.start", tid: 1 , accept:"close;position;palm", position:"up", palmXY:"up"},
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"close;palm", palmXY:"up", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"close;move;palm", palmXY:"up", asse: "y", directionY: "updown"}
+                    {gt: "leap.end", tid: 1, accept:"close;move;palm", palmXY:"up", move: "y", directionY: "updown"}
                 ]}
         ]
 
@@ -351,14 +351,14 @@ var container;
   */
     var semicircle = {
             sequence: [
-            {gt: "leap.start", tid: 1 , accept:"close", position:"left"},
+            {gt: "leap.start", tid: 1 , accept:"close"},
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"close", iterative: true},
-                    {gt: "leap.end", tid: 1,end:"1", accept:"close;end90", asse: "y",  directionX:"downUp"}
+                    {gt: "leap.end", tid: 1,end:"1", accept:"close;move", move: "y;x",  directionY:"downup", directionX:"leftright"}
                 ]}, 
             {disabling: [
                         {gt: "leap.move", tid: 1, accept:"close", iterative: true},
-                        {gt: "leap.end", tid: 1, end:"2", accept:"open;semicircle;samePosition", asse: "x",  directionX:"upDown", samePosition:"y"}
+                        {gt: "leap.end", tid: 1, end:"2", accept:"open;semicircle;samePosition", move:"y",  directionX:"upDown", samePosition:"y"}
                 ]}]
 
     };
@@ -369,7 +369,7 @@ var container;
             {gt: "leap.start", tid: 2 , accept:"press;position", finger:"index", position:"center" },
             {disabling: [
                     {gt: "leap.move", tid: 2, accept:"", iterative: true},
-                    {gt: "leap.end", tid: 2, accept:"move;", asse: "x;y", directionY: "updown", directionX:"leftright"}
+                    {gt: "leap.end", tid: 2, accept:"move;", move: "x;y", directionY: "updown", directionX:"leftright"}
                 ]}]};
         
       /*
