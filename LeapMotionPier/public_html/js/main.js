@@ -345,24 +345,31 @@ var container;
 
     };
  /*Drawing a counterclockwise semicircle
+  * punto inizio e fine corrispondono +-5 
   * 
+  * samePosition controlla se il punto di inizio leap.start e leap.end si trovano nella stessa altezza
   */
-    var semicircle1 = {
-     
-             sequence: [
-            {gt: "leap.start", tid: 1 , accept:"press;position" , finger:"index", position:"left"},
+    var semicircle = {
+            sequence: [
+            {gt: "leap.start", tid: 1 , accept:"close", position:"left"},
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"move", asse: "x;y", directionY: "downup", directionX:"leftright"}
+                    {gt: "leap.move", tid: 1, accept:"close", iterative: true},
+                    {gt: "leap.end", tid: 1,end:"1", accept:"close;end90", asse: "y",  directionX:"downUp"}
+                ]}, 
+            {disabling: [
+                        {gt: "leap.move", tid: 1, accept:"close", iterative: true},
+                        {gt: "leap.end", tid: 1, end:"2", accept:"open;semicircle;samePosition", asse: "x",  directionX:"upDown", samePosition:"y"}
                 ]}]
 
     };
     
+    
+    
     var semicircle2 ={sequence : [       
-            {gt: "leap.start", tid: 1 , accept:"press;position", finger:"index", position:"center" },
+            {gt: "leap.start", tid: 2 , accept:"press;position", finger:"index", position:"center" },
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"move;", asse: "x;y", directionY: "updown", directionX:"leftright"}
+                    {gt: "leap.move", tid: 2, accept:"", iterative: true},
+                    {gt: "leap.end", tid: 2, accept:"move;", asse: "x;y", directionY: "updown", directionX:"leftright"}
                 ]}]};
         
       /*
@@ -383,13 +390,13 @@ var container;
     };
     
     
-    var semicircle = {
+    var semicircle1 = {
         sequence : 
-                [semicircle1,semicircle2]};
+                [semicircle,semicircle2]};
     
    var input = {
         choice: [
-            wristclockwise
+            semicircle
             
         ],
         iterative: true
@@ -546,14 +553,14 @@ var container;
                 var color = 0x65ff00;
                 hands.updateHand(args.token.hand,color);});
             */
-    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
-            semicircle2,
+    djestit.onComplete( ":has(:root > .end:val(\"2\"))",
+            semicircle,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent = "gesture semicircle 222222complete";
+                document.getElementById("gesture").textContent = "gesture semicircle complete";
                 var color = 0x65ff00;
                 hands.updateHand(args.token.hand,color);});    
-    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
+    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\") )",
             wristclockwise,
             function(args) {                
                 console.log("action end ");
