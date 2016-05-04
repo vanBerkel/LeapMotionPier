@@ -1,5 +1,4 @@
 
-
 (function(djestit, undefined) {
 
     var _LEAPSTART = 1;
@@ -255,10 +254,10 @@
                                         }
                                     }
                                     if (moveToken[t].palmPosition[0]<aux.palmPosition[0]-_longDistance){
-                                        listRightLeft.push(moveToken[t]);
+                                        listLeftRight.push(moveToken[t]);
                                     }else{
                                         if (moveToken[t].palmPosition[0]>aux.palmPosition[0]+_longDistance){
-                                            listLeftRight.push(moveToken[t]);
+                                            listRightLeft.push(moveToken[t]);
                                         }
                                     }
 
@@ -307,7 +306,7 @@
                                     
                                     
                                 }
-                               
+                                console.log("position" + json.position + " " + flag); 
                                 break;
                             case "2hands":
                                 if (token.hands2){
@@ -317,14 +316,14 @@
                                     flag = false;
                                 break;
                             
-                            case "samePosition":
+                            case "samePosition": /// same position range 30+-
                                 var samePosition = json.samePosition.toString().split(";");
                                 if (start!==null) 
                                     for(var k=0; k<samePosition.length;k++){
                                         switch(samePosition[k]){
                                             case "y":
                                                 console.log("startPosition " + start.palmPosition[1] + "> token.palmPosition" + (token.palmPosition[1]-30) + "<tokenpalmposition" +token.palmPosition[1]+30);
-                                                flag = flag && start.palmPosition[1]> token.palmPosition[1]-30 && start.palmPosition[1]<token.palmPosition[1]+30;
+                                                //flag = flag && start.palmPosition[1]> token.palmPosition[1]-30 && start.palmPosition[1]<token.palmPosition[1]+30;
                                                 break;
                                             case "x":
                                                 console.log("samePosition x not defined");
@@ -347,14 +346,94 @@
                                 if ((start!==null)){  
 
                                     console.log("listDownUp " + listDownUp.length + " listUpDown " + listUpDown.length +
-                                            "rightleft" + listRightLeft.length + "leftright" + listLeftRight.length);
-                                    flag = flag && listDownUp.length > 2 && ((listRightLeft.length > 2 && 
+                                            "rightleft " + listRightLeft.length + "leftright " + listLeftRight.length +
+                                            "listDownUp x2 " + (listDownUp.length + _differenceDistance) + 
+                                            "_differenceDistance" + _differenceDistance);
+                                    
+                                    flag = flag && listDownUp.length > 2 && listRightLeft.length > (listDownUp.length + _differenceDistance) 
+                                            && listUpDown.length >2
+                                    /*&& ((listRightLeft.length > 2 && 
                                             listRightLeft.length < posEnd[0]*2 + _differenceDistance &&
                                             listRightLeft.length > posEnd[0]*2 - _differenceDistance)
                                             || listLeftRight.length >2) 
                                             && listDownUp.length > (listUpDown.length - _differenceDistance) 
-                                            && (listDownUp.length < (listUpDown.length + _differenceDistance)); 
-                                
+                                            && (listDownUp.length < (listUpDown.length + _differenceDistance)) */; 
+                                    
+                                    
+                                    if (flag){
+                                      
+                                        
+                                        
+                                        
+                                        var sX = start.palmPosition[0]; 
+                                        var eX = moveToken[moveToken.length-1].palmPosition[0];
+                                        
+                                        var sY = start.palmPosition[1];
+                                        var eY = moveToken[moveToken.length-1].palmPosition[1];
+                                        
+                                        var X2 = listUpDown[0].palmPosition[0];
+                                        var Y2 = listUpDown[0].palmPosition[1];
+                                        
+                                        
+                                        var X1 = listDownUp[listDownUp.length-1].palmPosition[0];
+                                        var Y1 = listDownUp[listDownUp.length-1].palmPosition[1];
+                                        
+                                        var m1 = Math.round(((Y1 - sY) / (X1 - sX)) * 100) / 100;
+                                        
+                                        console.log("m" + m1);
+                                        for (var count = 0; count< listDownUp.length; count++){
+                                                X1 = listDownUp[count].palmPosition[0];
+                                                Y1 = listDownUp[count].palmPosition[1];
+                                                m1 = Math.round(((Y1 - sY) / (X1 - sX)) * 100) / 100;
+                                                console.log (count + "listDownUp m1 " + m1);
+                                        
+                                        }                                       
+                                        
+                                        
+                                        /*
+                                         * var centerPointX = (sX + eX + X1 + X2)/4;
+                                        var centerPointY = (sY + eY + Y1 + Y2)/4;
+                                        
+                                        var raggio1 = Math.sqrt(((sX - centerPointX) * (sX - centerPointX)) +((sY - centerPointY) * (sY - centerPointY)));
+                                        var raggio3 = Math.sqrt(((X1 - centerPointX) * (X1 - centerPointX)) +((Y1 - centerPointY) * (Y1 - centerPointY)));
+                                        var raggio4 = Math.sqrt(((X2 - centerPointX) * (X2 - centerPointX)) +((Y2 - centerPointY) * (Y2 - centerPointY)));
+
+                                       
+                                        var raggio2 = Math.sqrt(((eX - centerPointX) * (eX - centerPointX)) +((eY - centerPointY) * (eY - centerPointY)));
+                                       
+                                       
+                                        console.log( "raggio" + raggio1 + " raggio2" + raggio2 + "raggio3" + raggio3 + "raggio4" + raggio4
+                                        + "raggiomedia" + (raggio1+raggio2+raggio3+raggio4)/4 );
+
+                                        for (var count = 0; count< listDownUp.length; count++){
+                                                sX = listDownUp[count].palmPosition[0];
+                                                sY = listDownUp[count].palmPosition[1];
+                                                raggio1 = Math.sqrt(((sX - centerPointX) * (sX - centerPointX)) +((sY - centerPointY) * (sY - centerPointY)));
+
+                                                console.log (count + "listDownUp" + raggio1);
+                                        
+                                        }
+                                        for (var count = 0; count< listUpDown.length; count++){
+                                                sX = listUpDown[count].palmPosition[0];
+                                                sY = listUpDown[count].palmPosition[1];
+                                                raggio1 = Math.sqrt(((sX - centerPointX) * (sX - centerPointX)) +((sY - centerPointY) * (sY - centerPointY)));
+
+                                                console.log (count + "listUpDown" + raggio1);
+                                        }
+                                       */
+                                      
+                                      
+                                      
+                                      
+                                      
+                                      
+                                      
+                                      
+                                      
+                                      
+                                      
+                                      
+                                    }
                                 
                                 }
                                 break;

@@ -354,11 +354,11 @@ var container;
             {gt: "leap.start", tid: 1 , accept:"close"},
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"close", iterative: true},
-                    {gt: "leap.end", tid: 1,end:"1", accept:"close;move", move: "y;x",  directionY:"downup", directionX:"leftright"}
+                    {gt: "leap.end", tid: 1,end:"1", accept:"close;move", move: "y",  directionY:"downup", directionX:"leftright"}
                 ]}, 
             {disabling: [
                         {gt: "leap.move", tid: 1, accept:"close", iterative: true},
-                        {gt: "leap.end", tid: 1, end:"2", accept:"open;semicircle;samePosition", move:"y",  directionX:"upDown", samePosition:"y"}
+                        {gt: "leap.end", tid: 1, end:"2", accept:"open;semicircle", move:"y",  directionX:"upDown", samePosition:"y"}
                 ]}]
 
     };
@@ -553,6 +553,13 @@ var container;
                 var color = 0x65ff00;
                 hands.updateHand(args.token.hand,color);});
             */
+    djestit.onComplete( ":has(:root > .end:val(\"1\"))",
+            semicircle,
+            function(args) {                
+                var color = 0x65ffff;
+                hands.updateHand(args.token.hand,color);}); 
+            
+            
     djestit.onComplete( ":has(:root > .end:val(\"2\"))",
             semicircle,
             function(args) {                
@@ -560,6 +567,8 @@ var container;
                 document.getElementById("gesture").textContent = "gesture semicircle complete";
                 var color = 0x65ff00;
                 hands.updateHand(args.token.hand,color);});    
+            
+            
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\") )",
             wristclockwise,
             function(args) {                
