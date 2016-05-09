@@ -17,9 +17,11 @@
     var _leftHand = "left";
     var _rightHand = "right";
     
-    var _longDistance = 4; // long distance for few movement
+    var _longDistance = 2; // long distance for few movement
 
     var _differenceDistance = 6;
+    
+    var _distanceY = 10;
 //leap e' il frame da analizzare considera la mano 
     var LeapToken = function(leap, type) {
         if (type!=_LEAPEND){
@@ -220,10 +222,7 @@
                 term.accepts = function(token) {
                     var flag = true;
                     var accept = json.accept.toString().split(";");
-                    
-                   
-                    for(i=0; i<accept.length; i++){
-                        if (term.type !=="Start"){
+                    if (term.type ==="End"){
                             if ((token.sequence.frames[json.tid]!==null) && (token.sequence.frames[json.tid].length>0)){    
                                 var moveToken = token.sequence.frames[json.tid];
                                 var aux = token.sequence.frames[json.tid][0];
@@ -235,16 +234,24 @@
                                 
                               
                                 var posEnd = [0,0,0,0];//right,left,up,down
+                                var highest;
+                                var palmEnd = [];
                                 for(var t=1; t< moveToken.length; t++){
                                     if (moveToken[t].type2==="End"){
                                         posEnd[0]=(listRightLeft.length);
                                         posEnd[1]=(listLeftRight.length);
                                         posEnd[2]=(listUpDown.length);
                                         posEnd[3]=(listDownUp.length);
-
                                         
-  
-                                    }
+                                        palmEnd.push(t);
+                                        console.log(palmEnd);
+                                     }
+                                    
+                                    
+                                    //punto piu alto
+                                    if (moveToken[t].palmPosition[1]>aux.palmPosition[1])
+                                        highest = t;
+                                    
                                     
                                     if (moveToken[t].palmPosition[1]>aux.palmPosition[1]+_longDistance){
                                         listDownUp.push(moveToken[t]);
@@ -265,13 +272,30 @@
                                 }
                             }
                         }
-                    
+                                            
+                   
+                    for(i=0; i<accept.length; i++){
+                        
                         
                         switch (accept[i]){
                             case "close":
                                 flag =  flag && token.close;
 
                                 break;
+                                
+                            case "take": // which data takes updown
+                                switch(json.take){
+                                    case "updown": //remove the listDownUp
+                                        listDownUp.splice(0,listDownUp.length-1);
+                                        break;
+                                    case "downup": //remove the listUpDown
+                                        listUpDown.splice(0,listUpDown.length-1);
+                                        break;
+                                    
+                                }
+                                
+                            
+                                break
                             case "position":
                                 switch(json.position){
                                     case "up":
@@ -344,13 +368,13 @@
                         
                             case "semicircle":
                                 if ((start!==null)){  
-
+                                    
                                     console.log("listDownUp " + listDownUp.length + " listUpDown " + listUpDown.length +
                                             "rightleft " + listRightLeft.length + "leftright " + listLeftRight.length +
                                             "listDownUp x2 " + (listDownUp.length + _differenceDistance) + 
                                             "_differenceDistance" + _differenceDistance);
                                     
-                                    flag = flag && listDownUp.length > 2 && listRightLeft.length > (listDownUp.length + _differenceDistance) 
+                                    flag = flag && listDownUp.length > 2 && listRightLeft.length > (listDownUp.length) 
                                             && listUpDown.length >2
                                     /*&& ((listRightLeft.length > 2 && 
                                             listRightLeft.length < posEnd[0]*2 + _differenceDistance &&
@@ -361,8 +385,99 @@
                                     
                                     
                                     if (flag){
-                                      
                                         
+                                        
+                                        // altezza media
+                                        //var media = Math.round((listDownUp.length)/2)-1;
+                                        var media = Math.round(highest/2);
+                                        console.log("palmEnd" + palmEnd);
+                                        var endhalf = highest;
+                                        var flag3= false;
+                                        var index = endhalf;
+                                        while (index<moveToken.length && flag3 ===false){
+
+                                            console.log(index + 
+                                                    "list " + moveToken[media].palmPosition[1] + 
+                                                    "listUpD" + moveToken[index].palmPosition[1] +
+                                                    "media "+ media + "index" + index + " length " + moveToken.length
+                                                    
+                                                    );
+
+                                            if ((moveToken[index].palmPosition[1] > (moveToken[media].palmPosition[1] - _distanceY))
+                                            &&(moveToken[index].palmPosition[1] < (moveToken[media].palmPosition[1] + _distanceY))
+                                            )
+                                                    flag3 = true;
+                                                else
+                                                    index++;
+                                                
+
+                                            
+                                        }
+                                       // console.log("listDownUp" + listDownUp[media].palmPosition[1] + " listUpDown" + listUpDown[index].palmPosition[1] +" index" + index);
+                                        
+                                        if (flag3){
+                                            var sX = moveToken[endhalf].palmPosition[0];
+                                            var X1 = moveToken[media].palmPosition[0];
+                                            var sY = moveToken[endhalf].palmPosition[1];
+                                            var Y1 = moveToken[media].palmPosition[1];
+                                            
+                                            
+                                            console.log("list" + moveToken[media].palmPosition[1] + "up Down" + moveToken[index].palmPosition[1]);
+                                            
+                                            var distance = Math.abs(moveToken[media].palmPosition[0] - moveToken[index].palmPosition[0]);
+                                            
+                                            var distanceFirst = Math.sqrt(((moveToken[endhalf].palmPosition[0] - moveToken[media].palmPosition[0]) 
+                                                                  * (moveToken[endhalf].palmPosition[0] - moveToken[media].palmPosition[0])) 
+                                                                  +  ((moveToken[endhalf].palmPosition[1] - moveToken[media].palmPosition[1]) 
+                                                                  * (moveToken[endhalf].palmPosition[1] - moveToken[media].palmPosition[1]))); 
+                                            var distanceFirst2 = Math.sqrt(((moveToken[endhalf].palmPosition[0] - moveToken[index].palmPosition[0]) 
+                                                                  * (moveToken[endhalf].palmPosition[0] - moveToken[index].palmPosition[0])) 
+                                                                  +  ((moveToken[endhalf].palmPosition[1] - moveToken[index].palmPosition[1]) 
+                                                                  * (moveToken[endhalf].palmPosition[1] - moveToken[index].palmPosition[1]))); 
+                                            console.log("distance" + distance + "distanceFirst" + distanceFirst + " distanceFirst2" + distanceFirst2);
+                                            
+                                            var index2 = 0;
+                                            var flag4 = false;
+                                            index = endhalf;
+                                            while(!flag4){
+                                                 if ((moveToken[index].palmPosition[1] > (moveToken[index2].palmPosition[1] - _distanceY))
+                                                &&(moveToken[index].palmPosition[1] < (moveToken[index2].palmPosition[1] + _distanceY))
+                                                )
+                                                    flag4 = true;
+                                                else
+                                                    if (moveToken[index].palmPosition[1] > (moveToken[index2].palmPosition[1])){
+                                                        index2++;
+                                                    }
+                                                    else
+                                                    index--;
+                                                
+                                                
+                                            }
+                                            
+                                           
+                                        
+                                            
+                                            var m1 = ((Y1 - sY) / (X1 - sX));
+
+                                            console.log("m" + m1 +"firtPoint " + moveToken[index].palmPosition[1] + " firstPoint2" + moveToken[index2].palmPosition[1]    + " index " + index
+                                                    + "index2 -" + index2);
+                                            
+                                            
+                                            var q = Y1 - (X1 * m1);
+                                            
+                                            var x = (moveToken[index2].palmPosition[1] - q)/m1;
+                                            
+                                            
+                                            console.log("x " + x + "x current" + moveToken[index2].palmPosition[0]  + "index2 " + index2);
+                                            flag = flag && Math.abs(x - moveToken[index2].palmPosition[0] ) >  _longDistance;
+                                                
+                                            
+                                        }
+                                        else
+                                            flag = false;
+                                        
+                                        
+                                        /*
                                         
                                         
                                         var sX = start.palmPosition[0]; 
@@ -381,6 +496,7 @@
                                         var m1 = Math.round(((Y1 - sY) / (X1 - sX)) * 100) / 100;
                                         
                                         console.log("m" + m1);
+                                      /*
                                         for (var count = 0; count< listDownUp.length; count++){
                                                 X1 = listDownUp[count].palmPosition[0];
                                                 Y1 = listDownUp[count].palmPosition[1];
@@ -388,7 +504,7 @@
                                                 console.log (count + "listDownUp m1 " + m1);
                                         
                                         }                                       
-                                        
+                                        */
                                         
                                         /*
                                          * var centerPointX = (sX + eX + X1 + X2)/4;
@@ -421,17 +537,6 @@
                                                 console.log (count + "listUpDown" + raggio1);
                                         }
                                        */
-                                      
-                                      
-                                      
-                                      
-                                      
-                                      
-                                      
-                                      
-                                      
-                                      
-                                      
                                       
                                     }
                                 
@@ -681,6 +786,46 @@
                                 }
                                 
                                 break;
+                            
+                            case "newmove":
+                                if (json.move){ //spostamento  
+                                    var asse = json.move.toString().split(";");
+                                    for(var j=0; j<asse.length; j++){
+                                        switch (asse[j]){
+                                                
+                                                case "x"://spostamento asse x
+                                                                                                                                            
+                                                    break;
+                                                 case "y":                                                  
+                                                     if (term.type==="End"){
+                                                         switch(json.directionY){
+                                                             case "updown":
+                                                                flag = flag && (listUpDown.length>0) && (listDownUp.length>listUpDown.length); 
+                                                                console.log("newmove " + flag + "posEnd " + listUpDown.length + "other downup" +listDownUp.length);
+                                                                break;
+                                                             case "downup":
+                                                                //flag = flag && listDownUp.length > (0) && (listUpDown.length ===0 ); 
+                                                                break;
+                                                             default:
+                                                                //flag = flag && (listDownUp.length > (0) || (listUpDown.length >0 )); 
+                                                                break;
+                                                             
+                                                         }
+                                                                        
+                                                    }
+                                               
+                                                 
+                                                    break;
+                                                case "z":
+                                                    console.log("move asse z not defined");
+                                                    break;
+                                            
+                                        }
+                                        
+                                } 
+                            }   
+                                break;
+                            
                             case "move":
                                 if (json.move){ //spostamento  
                                     var asse = json.move.toString().split(";");
@@ -751,7 +896,8 @@
                     if (flag){
                         token.type2 = term.type;
                         token.sequence.frames[json.tid].push(token);
-
+                        if (term.type==="End")
+                            console.log("palmEnd" + palmEnd);
                     }
                     return flag ;
                 };

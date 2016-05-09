@@ -357,8 +357,14 @@ var container;
                     {gt: "leap.end", tid: 1,end:"1", accept:"close;move", move: "y",  directionY:"downup", directionX:"leftright"}
                 ]}, 
             {disabling: [
+                    {gt: "leap.move", tid: 1, accept:"close", iterative: true},
+                    {gt: "leap.end", tid: 1, end:"2", accept:"close;newmove", move: "y",  directionY:"updown", directionX:"leftright"}
+                ]}, 
+            
+            
+            {disabling: [
                         {gt: "leap.move", tid: 1, accept:"close", iterative: true},
-                        {gt: "leap.end", tid: 1, end:"2", accept:"open;semicircle", move:"y",  directionX:"upDown", samePosition:"y"}
+                        {gt: "leap.end", tid: 1, end:"3", accept:"open;semicircle", move:"y",  directionX:"upDown", samePosition:"y"}
                 ]}]
 
     };
@@ -563,12 +569,17 @@ var container;
     djestit.onComplete( ":has(:root > .end:val(\"2\"))",
             semicircle,
             function(args) {                
+               
+                var color = 0x65ffaa;
+                hands.updateHand(args.token.hand,color);});    
+            
+      djestit.onComplete( ":has(:root > .end:val(\"3\"))",
+            semicircle,
+            function(args) {                
                 console.log("action end ");
                 document.getElementById("gesture").textContent = "gesture semicircle complete";
                 var color = 0x65ff00;
-                hands.updateHand(args.token.hand,color);});    
-            
-            
+                hands.updateHand(args.token.hand,color);});         
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\") )",
             wristclockwise,
             function(args) {                
