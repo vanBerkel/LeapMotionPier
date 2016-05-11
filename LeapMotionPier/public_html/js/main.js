@@ -287,9 +287,8 @@ var container;
     };
     
     /* 
-     * si potrebbe anche omettere il groundTerm move e anche il groundTermStart
+     *      * 
      * 
-     * press indentifica che la mano si sposta in avanti
      * finger identifica il dito interessato che fara' la gesture
      * 
      * 
@@ -297,24 +296,15 @@ var container;
      */
     var pressingIndex = {
        sequence: [
-            {gt: "leap.start", tid: 1 , accept:"press" , finger:"index"},
+            {gt: "leap.start", tid: 1 , accept:"finger" , finger:"index"},
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"press", finger:"index", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"press", finger:"index"}
+                    {gt: "leap.move", tid: 1, accept:"finger", finger:"index", iterative: true},
+                    {gt: "leap.end", tid: 1, accept:"move;finger", move:"z", directionZ:"behindfront", finger:"index"}
                 ]}
         ]
 
     };
-    var pressingIndex = {
-       sequence: [
-            {gt: "leap.start", tid: 1 , accept:"press" , finger:"index"},
-            {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"press", finger:"index", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"press", finger:"index"}
-                ]}
-        ]
 
-    };
     
     
     var handClap = {

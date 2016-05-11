@@ -18,7 +18,7 @@
     var _rightHand = "right";
     
     var _longDistance = 2; // long distance for few movement
-
+ var _longDistanceZ = 5;
     var _differenceDistance = 6;
     
     var _distanceY = 10;
@@ -223,18 +223,21 @@
                     var flag = true;
                     var accept = json.accept.toString().split(";");
                     if (term.type ==="End"){
+                        var listRightLeft = [];
+                                var listLeftRight = [];
+                                var listUpDown = [];
+                                var listDownUp = [];
+                                var listFrontBehind = [];
+                                var listBehindFront =[];
                             if ((token.sequence.frames[json.tid]!==null) && (token.sequence.frames[json.tid].length>0)){    
                                 var moveToken = token.sequence.frames[json.tid];
                                 var aux = token.sequence.frames[json.tid][0];
                                 var start = token.sequence.frames[json.tid][0];
-                                var listRightLeft = [];
-                                var listLeftRight = [];
-                                var listUpDown = [];
-                                var listDownUp = [];
                                 
                               
                                 var posEnd = [0,0,0,0];//right,left,up,down
                                 var highest;
+                                var y_high = aux.palmPosition[1];
                                 var palmEnd = [];
                                 for(var t=1; t< moveToken.length; t++){
                                     if (moveToken[t].type2==="End"){
@@ -249,8 +252,14 @@
                                     
                                     
                                     //punto piu alto
-                                    if (moveToken[t].palmPosition[1]>aux.palmPosition[1])
+                                    if (moveToken[t].palmPosition[1]>y_high){
                                         highest = t;
+                                        y_high = moveToken[t].palmPosition[1];
+                                        
+                                        console.log("compare " + "y " + y_high + " x " + moveToken[t].palmPosition[0] + " index" + t);
+                                    }
+                                    
+                                    
                                     
                                     
                                     if (moveToken[t].palmPosition[1]>aux.palmPosition[1]+_longDistance){
@@ -267,6 +276,17 @@
                                             listRightLeft.push(moveToken[t]);
                                         }
                                     }
+                                    
+                                    if (moveToken[t].palmPosition[2]<aux.palmPosition[2]-_longDistanceZ){
+                                        listBehindFront.push(moveToken[t]);
+                                    }else{
+                                        if (moveToken[t].palmPosition[2]>aux.palmPosition[2]+_longDistanceZ){
+                                            listFrontBehind.push(moveToken[t]);
+                                        }
+                                    }
+                                    
+                                    
+                                    
 
                                     aux = moveToken[t];                                            
                                 }
@@ -274,7 +294,7 @@
                         }
                                             
                    
-                    for(i=0; i<accept.length; i++){
+                    for(var i=0; i<accept.length; i++){
                         
                         
                         switch (accept[i]){
@@ -374,7 +394,7 @@
                                             "listDownUp x2 " + (listDownUp.length + _differenceDistance) + 
                                             "_differenceDistance" + _differenceDistance);
                                     
-                                    flag = flag && listDownUp.length > 2 && listRightLeft.length > (listDownUp.length) 
+                                    flag = flag && listDownUp.length > 2 // && listRightLeft.length > (listDownUp.length) 
                                             && listUpDown.length >2
                                     /*&& ((listRightLeft.length > 2 && 
                                             listRightLeft.length < posEnd[0]*2 + _differenceDistance &&
@@ -382,10 +402,56 @@
                                             || listLeftRight.length >2) 
                                             && listDownUp.length > (listUpDown.length - _differenceDistance) 
                                             && (listDownUp.length < (listUpDown.length + _differenceDistance)) */; 
+                                    for(var j=0; j<moveToken.length;j++)
+                                        console.log("index " + j + "x" + moveToken[j].palmPosition[0]);
                                     
                                     
-                                    if (flag){
+                                    
+                                    
+                                    
+                                    var Y1 = moveToken[highest].palmPosition[1];
+                                    var sY = moveToken[0].palmPosition[1];
+                                    
+                                    var distance = Y1 - sY;
+                                    var X1 = moveToken[highest].palmPosition[0];
+                                    var sX = moveToken[0].palmPosition[0];
+                                    
+                                    
+                                    var m1 = ((Y1 - sY) / (X1 - sX));
+                                   // var q = Y1 - (X1 * m1);
+
+                                    var y = ((moveToken[Math.round(highest/2)].palmPosition[0] - sX) * m1) + sY;
+
+                                    console.log("distance between y and y highest/2" + y + " " + 
+                                            moveToken[Math.round(highest/2)].palmPosition[1]
+                                            + "start x " + sX + "end x" + X1 + "point x" + moveToken[Math.round(highest/2)].palmPosition[0] 
+                                            + "final x" + moveToken[moveToken.length-1].palmPosition[0] + "distance " + distance
+                                            + "distance 20 " + (distance*0.18 ));
+                                    var flag2 = (distance * 0.18) < (moveToken[Math.round(highest/2)].palmPosition[1] -y);
+                                    
+                                    sY = moveToken[moveToken.length-1].palmPosition[1];
+                                    
+                                    distance = Y1 - sY;
+                                    
+                                    sX = moveToken[moveToken.length-1].palmPosition[0];                               
+                                    m1 = ((sY-Y1) / (sX-X1));
+                                   // var q = Y1 - (X1 * m1);
+
+                                    y = ((moveToken[Math.round((moveToken.length-1-highest)/2)].palmPosition[0] - X1) * m1) + Y1;
                                         
+                                    console.log("2distance between y and y highest/2" + y + " " + 
+                                            moveToken[Math.round((moveToken.length-1-highest)/2)].palmPosition[1]
+                                            + "start x " + sX + "end x" + X1 + "point x" + moveToken[Math.round((moveToken.length-1-highest)/2)].palmPosition[0] 
+                                            + "final x" + moveToken[moveToken.length-1].palmPosition[0] + "distance " + distance
+                                            + "distance 20 " + (distance*0.18 ));
+                                    
+                                    var flag3 = (distance * 0.18) < (moveToken[Math.round((moveToken.length-1-highest)/2)].palmPosition[1] -y);
+                                    
+                                    
+                                    flag = flag && (flag3 || flag2);
+                                    /*
+                                    if (flag){
+                                        /*
                                         
                                         // altezza media
                                         //var media = Math.round((listDownUp.length)/2)-1;
@@ -412,9 +478,9 @@
                                                 
 
                                             
-                                        }
+                                        }*/
                                        // console.log("listDownUp" + listDownUp[media].palmPosition[1] + " listUpDown" + listUpDown[index].palmPosition[1] +" index" + index);
-                                        
+                                        /*
                                         if (flag3){
                                             var sX = moveToken[endhalf].palmPosition[0];
                                             var X1 = moveToken[media].palmPosition[0];
@@ -475,7 +541,7 @@
                                         }
                                         else
                                             flag = false;
-                                        
+                                        */
                                         
                                         /*
                                         
@@ -536,9 +602,9 @@
 
                                                 console.log (count + "listUpDown" + raggio1);
                                         }
-                                       */
+                                       
                                       
-                                    }
+                                    }*/
                                 
                                 }
                                 break;
@@ -628,53 +694,9 @@
                                 
                                 
                                 break;
-                            case "press":
-                                
-                                    switch (term.type){
-                                    case "Move":
-                                        var index =0;
-                                        switch (json.finger){
-                                            case "thumb":
-                                                index =0;
-                                                break;
-                                            case "index":
-                                                //console.log ( "indexFinger " + token.pointable[1].id +"idPont" +  token.gesture.pointableIds[0]);
-                                                index =1;
-                                                break;
-                                            }
-                                            flag = flag && token.pointable[index].touchZone === "touching" ;
-                                     
-                                  //console.log("eccodi " + token.pointable);
 
-                                        break;
-                                    case "End":
-                                        if (token.gesture  && token.gesture.type === "screenTap"){
-                                            console.log("end press");
-                                            flag = flag  && token.gesture.state==="stop";
-                                            if (json.finger && token.pointable) {
-                                            var index =0;
-                                                switch (json.finger){
-                                                    case "thumb":
-                                                        index =0;
-                                                        break;
-                                                    case "index":
-                                                        //console.log ( "indexFinger " + token.pointable[1].id +"idPont" +  token.gesture.pointableIds[0]);
-                                                        index =1;
-                                                        break;
-                                                        
-                                                
-                                                
-                                                    }
-                                                    
-                                                    flag = flag && token.gesture.pointableIds[0] === token.pointable[index].id ;
-                                        }
-                                    }
-                                        else
-                                            flag = false;
-                                        break;
-                                    case "Start":
-                                        var index =0;
-                                        switch (json.finger){
+                            case "finger" :
+                                switch (json.finger){
                                             case "thumb":
                                                 index =0;
                                                 break;
@@ -682,16 +704,9 @@
                                                 //console.log ( "indexFinger " + token.pointable[1].id +"idPont" +  token.gesture.pointableIds[0]);
                                                 index =1;
                                                 break;
-                                            }
-                                           // console.log("eccodi " + token.pointable);
-                                            flag = flag && token.pointable[index].touchZone === "touching" ;
-                                        break;
-                                    
-                                    
-                                    }
-                                
+                                }
+                                flag = flag && token.pointable[index].touchZone === "touching" ;
                                 break;
-
                             case "circle":
                                 if (token.gesture  && token.gesture.type === "circle"){
                                     switch (term.type){
@@ -877,7 +892,24 @@
                                                  
                                                     break;
                                                 case "z":
-                                                    console.log("move asse z not defined");
+                                                    if (term.type==="End"){
+                                                    switch(json.directionZ){
+                                                             case "behindfront":
+                                                                 console.log("listFrontBehin" + listFrontBehind.length + " listBehindFront "
+                                                                         + listBehindFront.length );
+                                                                flag = flag && listFrontBehind.length ===(0) && (listBehindFront.length >0 ); 
+                                                                break;
+                                                             case "frontbehind":
+                                                                flag = flag && listFrontBehind.length > (0) && (listBehindFront.length ===0 ); 
+                                                                break;
+                                                             default:
+                                                                flag = flag && (listFrontBehind.length > (0) || (listBehindFront.length >0 )); 
+                                                                break;
+                                                             
+                                                         }
+                                                    
+                                                    
+                                                }
                                                     break;
                                             
                                         }
@@ -895,9 +927,18 @@
                 }
                     if (flag){
                         token.type2 = term.type;
-                        token.sequence.frames[json.tid].push(token);
-                        if (term.type==="End")
-                            console.log("palmEnd" + palmEnd);
+                        if ((token.sequence.frames[json.tid].length ===0) || ((token.sequence.frames[json.tid]!==null) && (token.sequence.frames[json.tid].length>0) &&
+                            (token.sequence.frames[json.tid][token.sequence.frames[json.tid].length-1].palmPosition[0] !== token.palmPosition[0])))
+                    {console.log("dentro");
+                            token.sequence.frames[json.tid].push(token);
+                        }   
+                        
+                        else{
+                            
+                            
+                        }
+                       // if (term.type==="End")
+                         //   console.log("palmEnd" + palmEnd);
                     }
                     return flag ;
                 };
