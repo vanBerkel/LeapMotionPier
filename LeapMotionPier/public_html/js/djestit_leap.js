@@ -17,14 +17,14 @@
     var _leftHand = "left";
     var _rightHand = "right";
     
-    var _longDistance = 2; // long distance for few movement
+    var _longDistance = 5; // long distance for few movement
  var _longDistanceZ = 5;
     var _differenceDistance = 6;
     
     var _distanceY = 10;
 //leap e' il frame da analizzare considera la mano 
     var LeapToken = function(leap, type) {
-        if (type!=_LEAPEND){
+        if (type!==_LEAPEND){
         
             if (leap.gestures.length>0){
                // for (var i=0; i < leap.gestures.length; i++){
@@ -79,7 +79,11 @@
             else 
                 this.open = false;
             
+            
             this.indexFinger = this.hand.indexFinger;
+            
+            
+            
             
           //  console.log("indexFinger",this.indexFinger);
 
@@ -98,9 +102,11 @@
         //this.hand=leap;
        // }
    
-        this.id = this.hand.id;
-        }else
-             this.id = leap.id;
+       // this.id = this.hand.id;
+        }//else
+            this.id = leap.id;
+
+//        console.log("leap.id " + leap.id + " leap.hand" + this.hand.id);
     
         //this.id = leap.id; 
         this.type = type; // _LEAPSTART _LEAPMOVE _LEAPEND identifica se la mano e' sopra il leap
@@ -164,13 +170,18 @@
             this._push(token);
           
             switch (token.type) {
+                
                 case _LEAPSTART:
                     this.leaps[token.id] = [];
                     this.l_index[token.id] = 0;
                     
                     this.frames[token.id] = [];
+                    console.log("noooooooooooooooo");
+
                 case _LEAPMOVE: 
                 case _LEAPEND:
+                    //                    console.log("noooooooooooooooo");
+
                     if (this.leaps[token.id].length < this.capacity) {
                         this.leaps[token.id].push(token);
                     } else {
@@ -220,6 +231,7 @@
             if (json.accept){
                
                 term.accepts = function(token) {
+                    if (token.type !== _LEAPEND){
                     var flag = true;
                     var accept = json.accept.toString().split(";");
                     if (term.type ==="End"){
@@ -245,11 +257,9 @@
                                         posEnd[1]=(listLeftRight.length);
                                         posEnd[2]=(listUpDown.length);
                                         posEnd[3]=(listDownUp.length);
-                                        
                                         palmEnd.push(t);
                                         console.log(palmEnd);
                                      }
-                                    
                                     
                                     //punto piu alto
                                     if (moveToken[t].palmPosition[1]>y_high){
@@ -389,22 +399,17 @@
                             case "semicircle":
                                 if ((start!==null)){  
                                     
-                                    console.log("listDownUp " + listDownUp.length + " listUpDown " + listUpDown.length +
+                                   /* console.log("listDownUp " + listDownUp.length + " listUpDown " + listUpDown.length +
                                             "rightleft " + listRightLeft.length + "leftright " + listLeftRight.length +
                                             "listDownUp x2 " + (listDownUp.length + _differenceDistance) + 
-                                            "_differenceDistance" + _differenceDistance);
+                                            "_differenceDistance" + _differenceDistance);*/
                                     
-                                    flag = flag && listDownUp.length > 2 // && listRightLeft.length > (listDownUp.length) 
+                                    flag = flag && listDownUp.length > 2 && listRightLeft.length > (listDownUp.length) 
                                             && listUpDown.length >2
-                                    /*&& ((listRightLeft.length > 2 && 
-                                            listRightLeft.length < posEnd[0]*2 + _differenceDistance &&
-                                            listRightLeft.length > posEnd[0]*2 - _differenceDistance)
-                                            || listLeftRight.length >2) 
-                                            && listDownUp.length > (listUpDown.length - _differenceDistance) 
-                                            && (listDownUp.length < (listUpDown.length + _differenceDistance)) */; 
-                                    for(var j=0; j<moveToken.length;j++)
+                                  ; 
+                                  /*  for(var j=0; j<moveToken.length;j++)
                                         console.log("index " + j + "x" + moveToken[j].palmPosition[0]);
-                                    
+                                    */
                                     
                                     
                                     
@@ -422,11 +427,11 @@
 
                                     var y = ((moveToken[Math.round(highest/2)].palmPosition[0] - sX) * m1) + sY;
 
-                                    console.log("distance between y and y highest/2" + y + " " + 
+                                   /* console.log("distance between y and y highest/2" + y + " " + 
                                             moveToken[Math.round(highest/2)].palmPosition[1]
                                             + "start x " + sX + "end x" + X1 + "point x" + moveToken[Math.round(highest/2)].palmPosition[0] 
                                             + "final x" + moveToken[moveToken.length-1].palmPosition[0] + "distance " + distance
-                                            + "distance 20 " + (distance*0.18 ));
+                                            + "distance 20 " + (distance*0.18 ));*/
                                     var flag2 = (distance * 0.18) < (moveToken[Math.round(highest/2)].palmPosition[1] -y);
                                     
                                     sY = moveToken[moveToken.length-1].palmPosition[1];
@@ -703,9 +708,16 @@
                                             case "index":
                                                 //console.log ( "indexFinger " + token.pointable[1].id +"idPont" +  token.gesture.pointableIds[0]);
                                                 index =1;
+                                                //flag = flag && token.pointable[2].touchZone == ""
+                                                
+                                             
+                                                flag = flag && token.hand.fingers[1].extended  && (!token.hand.fingers[0].extended)
+                                               && (!token.hand.fingers[2].extended) && (!token.hand.fingers[3].extended) && 
+                                               (!token.hand.fingers[4].extended);
+
                                                 break;
                                 }
-                                flag = flag && token.pointable[index].touchZone === "touching" ;
+                                console.log("pointable " +token.hand.fingers[0].extended);
                                 break;
                             case "circle":
                                 if (token.gesture  && token.gesture.type === "circle"){
@@ -844,6 +856,9 @@
                             case "move":
                                 if (json.move){ //spostamento  
                                     var asse = json.move.toString().split(";");
+                                    var distance = 0;
+                                    if (json.distance !==null)
+                                        distance = json.distance;
                                     for(var j=0; j<asse.length; j++){
                                         switch (asse[j]){
                                                 
@@ -854,13 +869,13 @@
                                                         switch(json.directionX){
 
                                                              case "leftright":
-                                                                 flag = flag && listLeftRight.length > (0) && (listRightLeft.length === 0 );   
+                                                                 flag = flag && listLeftRight.length > (distance) && (listRightLeft.length === 0 );   
                                                                  break;
                                                              case "rightleft":
-                                                                 flag = flag && listLeftRight.length === (0) && (listRightLeft.length >0 );                                                                  
+                                                                 flag = flag && listLeftRight.length === (0) && (listRightLeft.length >distance );                                                                  
                                                                 break;
                                                             default:
-                                                                flag = flag && (listLeftRight.length >(0) || (listRightLeft.length >0 ));                                                                  break;
+                                                                flag = flag && (listLeftRight.length >(distance) || (listRightLeft.length >distance ));                                                                  break;
 
                                                                  break;
                                                              
@@ -876,13 +891,13 @@
                                                          switch(json.directionY){
                                                              case "updown":
                                                                  
-                                                                flag = flag && listDownUp.length === (0) && (listUpDown.length >0 ); 
+                                                                flag = flag && listDownUp.length === (0) && (listUpDown.length >distance ); 
                                                                 break;
                                                              case "downup":
-                                                                flag = flag && listDownUp.length > (0) && (listUpDown.length ===0 ); 
+                                                                flag = flag && listDownUp.length > (distance) && (listUpDown.length ===0 ); 
                                                                 break;
                                                              default:
-                                                                flag = flag && (listDownUp.length > (0) || (listUpDown.length >0 )); 
+                                                                flag = flag && (listDownUp.length > (distance) || (listUpDown.length >distance )); 
                                                                 break;
                                                              
                                                          }
@@ -897,13 +912,13 @@
                                                              case "behindfront":
                                                                  console.log("listFrontBehin" + listFrontBehind.length + " listBehindFront "
                                                                          + listBehindFront.length );
-                                                                flag = flag && listFrontBehind.length ===(0) && (listBehindFront.length >0 ); 
+                                                                flag = flag && listFrontBehind.length ===(0) && (listBehindFront.length >distance ); 
                                                                 break;
                                                              case "frontbehind":
-                                                                flag = flag && listFrontBehind.length > (0) && (listBehindFront.length ===0 ); 
+                                                                flag = flag && listFrontBehind.length > (distance) && (listBehindFront.length ===0 ); 
                                                                 break;
                                                              default:
-                                                                flag = flag && (listFrontBehind.length > (0) || (listBehindFront.length >0 )); 
+                                                                flag = flag && (listFrontBehind.length > (distance) || (listBehindFront.length >distance )); 
                                                                 break;
                                                              
                                                          }
@@ -933,14 +948,13 @@
                             token.sequence.frames[json.tid].push(token);
                         }   
                         
-                        else{
-                            
-                            
-                        }
+                       
                        // if (term.type==="End")
                          //   console.log("palmEnd" + palmEnd);
                     }
                     return flag ;
+                }
+                return false;
                 };
                 
                     
@@ -985,6 +999,9 @@
         this.eventToLeap = [];
         // we do not use zero as touch identifier
         this.leapToEvent[0] = -1;
+        
+        this.tokenToLeap = -1;
+        
         var self = this;
 
         this.generateToken = function(type, leap) {
@@ -993,7 +1010,11 @@
                 case _LEAPSTART: //mano rilevata
                     
                     var leapId = this.firstId(token.id);
+                    console.log("eventToLeap leapID" + leapId + " " + token.id);
+                    //var leapId2= this.firstId2(token.id);
                     this.eventToLeap[token.id] = leapId;
+                    
+                    this.tokenToLeap = token.id;
                     this.leapToEvent[leapId] = [token.id];
                     token.id = leapId;
                     //console.log("LeapStart > " +token.id);
@@ -1001,20 +1022,26 @@
                     break;
                 case _LEAPMOVE: //mano continua ad essere rilevata
                     // console.log("LeapMove > " +token.id);
-                    token.id = this.eventToLeap[token.id];
+                    if (token.id>this.tokenToLeap)
+                        token.id = this.eventToLeap[this.tokenToLeap];
+                    else
+                        console.log("error");
+                    
                     //console.log("LeapMove > " +token.id);
                    break;
                 case _LEAPEND: //mano fuori dalla vista
-                   //rimuovi tutto???
-
-                    token.id = this.eventToLeap[leap.id];
-                    delete this.eventToLeap[leap.id];
-                    this.leapToEvent[token.id] = null;
+                    if ((token.id>=this.tokenToLeap)&& (this.tokenToLeap>-1)){
+                        token.id = this.eventToLeap[this.tokenToLeap];
+                        delete this.eventToLeap[token.id];
+                        this.leapToEvent[token.id] = null;
+                    }
+                    else
+                        console.log("error LEAPEND" + this.tokenToLeap + " " + token.id);
                     
                    break;
             }
             //console.log('token id' + token.id + 'leap id' + leap.id);
-            if (token.id !== undefined){
+            if (token.type !== _LEAPEND){
                 this.sequence.push(token);
                 token.sequence = this.sequence;
             }
@@ -1031,6 +1058,10 @@
             this.leapToEvent.push(id);
             return this.leapToEvent.length - 1;
         };
+        
+    
+        
+        
 
 /* raiseLeapEvent
  * @param {type} event
@@ -1086,7 +1117,7 @@
                     }
                         else {// ultimo frame
                             previousFrame=null;
-                            //self._raiseLeapEvent(frame,_LEAPEND);
+                            self._raiseLeapEvent(frame,_LEAPEND);
                         }
             //},5000);
   
@@ -1111,7 +1142,7 @@
         this.element.on('handLost', function(hand) {
                 document.getElementById("up").textContent = "metti la mano sopra il leap motion";
                 hands.lostHand(hand);
-                self._raiseLeapEvent(hand,_LEAPEND)
+              //  self._raiseLeapEvent(hand,_LEAPEND)
         });
         
         
