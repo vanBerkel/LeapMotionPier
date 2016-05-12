@@ -299,7 +299,7 @@ var container;
             {gt: "leap.start", tid: 1 , accept:"finger" , finger:"index"},
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"finger", finger:"index", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"move;finger", move:"z", directionZ:"behindfront", finger:"index"}
+                    {gt: "leap.end", tid: 1, accept:"move;finger", move:"z", directionZ:"behindfront", finger:"index" , distance:3}
                 ]}
         ]
 
@@ -329,45 +329,38 @@ var container;
             {gt: "leap.start", tid: 1 , accept:"close;position;palm", position:"up", palmXY:"up"},
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"close;palm", palmXY:"up", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"close;move;palm", palmXY:"up", move: "y", directionY: "updown"}
+                    {gt: "leap.end", tid: 1, accept:"close;move;palm", palmXY:"up", move: "y", directionY: "updown", distance: 3}
                 ]}
         ]
 
     };
  /*Drawing a counterclockwise semicircle
-  * punto inizio e fine corrispondono +-5 
+  *  
   * 
-  * samePosition controlla se il punto di inizio leap.start e leap.end si trovano nella stessa altezza
   */
     var semicircle = {
             sequence: [
-            {gt: "leap.start", tid: 1 , accept:"close"},
+            {gt: "leap.start", tid: 1 , accept:"finger" , finger:"index"},
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"close", iterative: true},
-                    {gt: "leap.end", tid: 1,end:"1", accept:"close;move", move: "y",  directionY:"downup", directionX:"leftright"}
+                    {gt: "leap.move", tid: 1, accept:"finger" , finger:"index", iterative: true},
+                    {gt: "leap.end", tid: 1,end:"1", accept:"finger;move", finger:"index", move: "y",  directionY:"downup", directionX:"leftright"}
                 ]}, 
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"close", iterative: true},
-                    {gt: "leap.end", tid: 1, end:"2", accept:"close;newmove", move: "y",  directionY:"updown", directionX:"leftright"}
+                    {gt: "leap.move", tid: 1, accept:"finger" , finger:"index", iterative: true},
+                    {gt: "leap.end", tid: 1, end:"2", accept:"finger;newmove", finger:"index", move: "y",  directionY:"updown", directionX:"leftright"}
                 ]}, 
             
             
             {disabling: [
-                        {gt: "leap.move", tid: 1, accept:"close", iterative: true},
-                        {gt: "leap.end", tid: 1, end:"3", accept:"open;semicircle", move:"y",  directionX:"upDown", samePosition:"y"}
+                        {gt: "leap.move", tid: 1, accept:"finger", finger:"index", iterative: true},
+                        {gt: "leap.end", tid: 1, end:"3", accept:"finger;semicircle", finger:"index", move:"y",  directionX:"upDown", samePosition:"y"}
                 ]}]
 
     };
     
     
     
-    var semicircle2 ={sequence : [       
-            {gt: "leap.start", tid: 2 , accept:"press;position", finger:"index", position:"center" },
-            {disabling: [
-                    {gt: "leap.move", tid: 2, accept:"", iterative: true},
-                    {gt: "leap.end", tid: 2, accept:"move;", move: "x;y", directionY: "updown", directionX:"leftright"}
-                ]}]};
-        
+
       /*
        * 
        * @type type
@@ -386,13 +379,10 @@ var container;
     };
     
     
-    var semicircle1 = {
-        sequence : 
-                [semicircle,semicircle2]};
-    
+  
    var input = {
         choice: [
-            semicircle
+            semicircle, pressingIndex, pullString
             
         ],
         iterative: true
@@ -410,6 +400,7 @@ var container;
                 document.getElementById("up").textContent = "direction " + args.direction;
                //gestureSegment.requestAnimation(args.token.palmPosition, "Start" , null,null);   
             });
+            
     djestit.onComplete(
             ":has(:root > .gt:val(\"leap.start\"))",
             thumbUp,
@@ -420,6 +411,7 @@ var container;
                     document.getElementById("up").textContent = "arm " + args.direction;
                //gestureSegment.requestAnimation(args.token.palmPosition, "Start" , null,null);   
             });
+            
     djestit.onComplete(
             ":has(:root > .gt:val(\"leap.move\"))",
             panx,
