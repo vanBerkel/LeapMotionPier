@@ -18,11 +18,12 @@
     var _rightHand = "right";
     
     var _longDistance = 5; // long distance for few movement
- var _longDistanceZ = 5;
+    var _longDistanceZ = 5;
     var _differenceDistance = 6;
     
     var _distanceY = 10;
-//leap e' il frame da analizzare considera la mano 
+
+    //leap e' il frame da analizzare considera la mano 
     var LeapToken = function(leap, type) {
         if (type!==_LEAPEND){
         
@@ -42,19 +43,15 @@
                         case "screenTap":
                             //console.log(leap.gestures[leap.gestures.length-1]);
                             break;
-                    }
-                    
-                    
+                    }  
                 //}
-                
-                
             }
   
             this.pointable = leap.pointables;
             this.hand = leap.hands[0];
             if (leap.hands.length >1){
                 this.hands2 = leap.hands[1];
-                console.log(this.hand.palmPosition[0]- this.hands2.palmPosition[0] + "ssss");
+                //console.log(this.hand.palmPosition[0]- this.hands2.palmPosition[0] + "ssss");
 
                 if (Math.abs((this.hand.palmPosition[0] - this.hands2.palmPosition[0])) < _handClapDistance){
                     this.separate = false;
@@ -78,6 +75,8 @@
                 this.open = true;
             else 
                 this.open = false;
+            
+            
             
             
             this.indexFinger = this.hand.indexFinger;
@@ -174,14 +173,9 @@
                 case _LEAPSTART:
                     this.leaps[token.id] = [];
                     this.l_index[token.id] = 0;
-                    
                     this.frames[token.id] = [];
-                    console.log("noooooooooooooooo");
-
                 case _LEAPMOVE: 
                 case _LEAPEND:
-                    //                    console.log("noooooooooooooooo");
-
                     if (this.leaps[token.id].length < this.capacity) {
                         this.leaps[token.id].push(token);
                     } else {
@@ -241,7 +235,8 @@
                                 var listDownUp = [];
                                 var listFrontBehind = [];
                                 var listBehindFront =[];
-                            if ((token.sequence.frames[json.tid]!==null) && (token.sequence.frames[json.tid].length>0)){    
+                   
+                     if ((token.sequence.frames[json.tid]!==null) && (token.sequence.frames[json.tid].length>0)){    
                                 var moveToken = token.sequence.frames[json.tid];
                                 var aux = token.sequence.frames[json.tid][0];
                                 var start = token.sequence.frames[json.tid][0];
@@ -258,20 +253,16 @@
                                         posEnd[2]=(listUpDown.length);
                                         posEnd[3]=(listDownUp.length);
                                         palmEnd.push(t);
-                                        console.log(palmEnd);
+                                        //console.log(palmEnd);
                                      }
                                     
                                     //punto piu alto
                                     if (moveToken[t].palmPosition[1]>y_high){
                                         highest = t;
-                                        y_high = moveToken[t].palmPosition[1];
-                                        
-                                        console.log("compare " + "y " + y_high + " x " + moveToken[t].palmPosition[0] + " index" + t);
+                                        y_high = moveToken[t].palmPosition[1];                   
+                                        //console.log("compare " + "y " + y_high + " x " + moveToken[t].palmPosition[0] + " index" + t);
                                     }
-                                    
-                                    
-                                    
-                                    
+                   
                                     if (moveToken[t].palmPosition[1]>aux.palmPosition[1]+_longDistance){
                                         listDownUp.push(moveToken[t]);
                                     }else{
@@ -399,19 +390,11 @@
                             case "semicircle":
                                 if ((start!==null)){  
                                     
-                                   /* console.log("listDownUp " + listDownUp.length + " listUpDown " + listUpDown.length +
-                                            "rightleft " + listRightLeft.length + "leftright " + listLeftRight.length +
-                                            "listDownUp x2 " + (listDownUp.length + _differenceDistance) + 
-                                            "_differenceDistance" + _differenceDistance);*/
                                     
-                                    flag = flag && listDownUp.length > 2 && listRightLeft.length > (listDownUp.length) 
+                                    flag = flag && listDownUp.length > 2 //&& listRightLeft.length > (listDownUp.length) 
                                             && listUpDown.length >2
                                   ; 
-                                  /*  for(var j=0; j<moveToken.length;j++)
-                                        console.log("index " + j + "x" + moveToken[j].palmPosition[0]);
-                                    */
-                                    
-                                    
+                                                                 
                                     
                                     
                                     var Y1 = moveToken[highest].palmPosition[1];
@@ -627,6 +610,7 @@
                                     case "normalDown":
                                         if (token.hand.type === _rightHand){
                                             flag = flag && ((token.hand.roll())< (Math.PI/12) ||((token.hand.roll()) > (-Math.PI/12)));
+                                            console.log("flag normalDown", flag);
                                         }
                                         else{
                                             flag = flag && ((token.hand.roll())> (5*Math.PI/6) ||((token.hand.roll()) <(-5*Math.PI/6)));
@@ -700,25 +684,67 @@
                                 
                                 break;
 
-                            case "finger" :
-                                switch (json.finger){
-                                            case "thumb":
-                                                index =0;
-                                                break;
-                                            case "index":
-                                                //console.log ( "indexFinger " + token.pointable[1].id +"idPont" +  token.gesture.pointableIds[0]);
-                                                index =1;
-                                                //flag = flag && token.pointable[2].touchZone == ""
-                                                
-                                             
-                                                flag = flag && token.hand.fingers[1].extended  && (!token.hand.fingers[0].extended)
-                                               && (!token.hand.fingers[2].extended) && (!token.hand.fingers[3].extended) && 
-                                               (!token.hand.fingers[4].extended);
-
-                                                break;
+                            case "finger":
+                                var fingers = json.finger.toString().split(";");
+                                var fingerE = [false,false,false,false,false];
+                                
+                                for(var f=0;f<fingers.length;f++){
+                                    switch (fingers[f]){
+                                                case "thumb":
+                                                    console.log("pointable " +token.hand.fingers[0].extended);
+                                                    fingerE[0]=true; 
+                                                    break;
+                                                case "index":
+                                                    fingerE[1]=true; 
+                                                    break;
+                                                case "middle":
+                                                    fingerE[2]=true; 
+                                                    break;
+                                    }
                                 }
-                                console.log("pointable " +token.hand.fingers[0].extended);
+                                
+                                flag = flag && (token.hand.fingers[0].extended===fingerE[0])  && (token.hand.fingers[1].extended === fingerE[1])
+                                                   && (!token.hand.fingers[2].extended === fingerE[2]) && (token.hand.fingers[3].extended === fingerE[3]) && 
+                                                   (token.hand.fingers[4].extended === fingerE[4]);
+                                           
+                                           console.log("flag extended" + flag);
+                                
                                 break;
+                                
+                            case "fingerUnion":
+                                var fingers = json.fingerUnion.toString().split(";");
+                                
+                                for(var f=0;f<fingers.length;f++){
+                                    switch (fingers[f]){
+                                                case "thumb-middle":
+                                                    console.log("pointable " +token.hand.fingers[0].extended);
+                                                    flag = flag && (Math.abs(token.hand.fingers[0].distal.nextJoint[2]) > (Math.abs(token.hand.fingers[2].distal.nextJoint[2]) - 5)) 
+                                                            && (Math.abs(token.hand.fingers[0].distal.nextJoint[2]) < (Math.abs(token.hand.fingers[2].distal.nextJoint[2]) +5))
+                                                            && ((token.hand.fingers[0].distal.nextJoint[1] > (token.hand.fingers[2].distal.nextJoint[1] - 10)) 
+                                                            && (token.hand.fingers[0].distal.nextJoint[1]<(token.hand.fingers[2].distal.nextJoint[1] +10))
+                                                            );
+ console.log(/*"thumb" + token.hand.fingers[0].carpPosition +  " middle" + token.hand.fingers[2].carpPosition
+                                        + " thumb dip position" + token.hand.fingers[0].dipPosition + " middle " + token.hand.fingers[2].dipPosition 
+                                        + "mcp position" + token.hand.fingers[0].mcpPosition + " middle" + token.hand.fingers[2].mcpPosition + */
+                                         "distal thumb " + token.hand.fingers[0].distal.nextJoint + " middle distal" + token.hand.fingers[2].distal.nextJoint + 
+                                                 " flag " + flag);
+                                                    break;
+                                                case "thumb-index":
+                                                    fingerE[1]=true; 
+                                                    break;
+                                                case "thumb-pinky":
+                                                    fingerE[2]=true; 
+                                                    break;
+                                    }
+                                }
+                               
+                                
+                                
+                                           
+                                           
+                                
+                                    break;
+                                
                             case "circle":
                                 if (token.gesture  && token.gesture.type === "circle"){
                                     switch (term.type){
@@ -782,10 +808,10 @@
                                                    case "Move":
                                                        break;
                                                    case "End":
-                                                      flag = flag && (Math.abs(token.thumb.direction[1]))>= _fingerOpen;
+                                                        flag = flag && (Math.abs(token.thumb.direction[1]))>= _fingerOpen;
                                                        break;
                                                    case "Start":
-                                                      flag = flag && (Math.abs(token.thumb.direction[1]))>= _fingerOpen;
+                                                        flag = flag && (Math.abs(token.thumb.direction[1]))>= _fingerOpen;
                                                        break;
                                                }
                                             break;
@@ -903,8 +929,6 @@
                                                          }
                                                                         
                                                     }
-                                               
-                                                 
                                                     break;
                                                 case "z":
                                                     if (term.type==="End"){
@@ -943,15 +967,11 @@
                     if (flag){
                         token.type2 = term.type;
                         if ((token.sequence.frames[json.tid].length ===0) || ((token.sequence.frames[json.tid]!==null) && (token.sequence.frames[json.tid].length>0) &&
-                            (token.sequence.frames[json.tid][token.sequence.frames[json.tid].length-1].palmPosition[0] !== token.palmPosition[0])))
-                    {console.log("dentro");
+                            (token.sequence.frames[json.tid][token.sequence.frames[json.tid].length-1].palmPosition[0] !== token.palmPosition[0]))){
                             token.sequence.frames[json.tid].push(token);
                         }   
                         
-                       
-                       // if (term.type==="End")
-                         //   console.log("palmEnd" + palmEnd);
-                    }
+                                 }
                     return flag ;
                 }
                 return false;
@@ -1035,8 +1055,8 @@
                         delete this.eventToLeap[token.id];
                         this.leapToEvent[token.id] = null;
                     }
-                    else
-                        console.log("error LEAPEND" + this.tokenToLeap + " " + token.id);
+                    //else // la mano non e' stata mai considerata
+                      //  console.log("error LEAPEND" + this.tokenToLeap + " " + token.id);
                     
                    break;
             }
@@ -1071,17 +1091,19 @@
  */
         this._raiseLeapEvent = function(frame, name) {
                 var token = self.generateToken(name, frame);
-                if (token.id !== undefined){
+                if (token.type !== _LEAPEND ){
                
                     self.root.fire(token);
                     console.log("state -> " + self.root.state + "  self ->" + self.root.lookahead(token));
                     if (self.root.state === djestit.COMPLETE){
                         console.log("gesto completato");
+                        token.sequence.frames[token.id] = [];
                         self.root.reset();
                         
                     }
                    if ((self.root.state === djestit.ERROR) || (!self.root.lookahead(token))){
-                         console.log("gesto non completato");
+                        console.log("gesto non completato");
+                        token.sequence.frames[token.id] = [];    
                         self.root.reset();
                         
                     }
