@@ -137,117 +137,35 @@ var container;
        gestureSegment.camera = this.camera;
        gestureSegment.scene = this.scene;
         gestureSegment.config = config;
+     
     
-     //gestureSegment.requestAnimation();
-    
-/*
-    
-    var term1 = new djestit.LeapStart(1);
-    term1.type = "Start";
-    term1.accepts = function(token) {
-          if (token.type && token.close > 0.5){
-            console.log("line added " + token.palmPosition);
-            var color = 0x52ce00;
-            hands.updateHand(token.hand,color);
-            document.getElementById("up").textContent = "gesto pan da completare";
-            gestureSegment.requestAnimation(token.palmPosition, "Start" , null,null);
-            return true;
-        }
-        return false;
-       
-    };
-    
-    var term2 = new djestit.LeapMove(1);
-    term2.type = "Move" ;
-    term2.accepts = function(token) {
-        
-        if (token.type && token.close >0.5 ){
-            console.log("action move ");
-            document.getElementById("up").textContent = "gesto pan da completare";
-            var old1 = token.sequence.start[1].palmPosition;
-            var curr1 = token.sequence.getById(1, 1).palmPosition;
-            gestureSegment.requestAnimation(token.palmPosition, "Move" , old1, curr1 );
-            return true;
-        }
-        return false;
-        
-    };
-    
-    var term3 = new djestit.LeapEnd(1);
-    term3.type = "End" ;
-    term3.accepts = function(token) {
-        if (token.type && token.close <0.5 && (Math.abs(token.palmPosition[0]) - Math.abs(curr.palmPosition[0]))> (20)){
-                console.log("action end ");
-                document.getElementById("gesture").textContent = "gesto pan X completato";
-                var color = 0x65ff00;
-                hands.updateHand(token.hand,color);
-                return true;
-        }
-        return false;
-    };
-    
-
-    var iterative = new djestit.Iterative(term2);
-    
-    var disabling = new djestit.Disabling([iterative, term3]);
-
-    var sequencePan = new djestit.Sequence ([term1, disabling]);
-    
-    var choice = new djestit.Choice([sequencePan]);
-    
-
-    
-
-   
-    /*choice.onComplete = function(term1){
-        if (term1.state === djestit.COMPLETE)
-            console.log("onComplete");
-        else 
-            console.log("onError");
-
-        
-    };
-            
-      */     
-    
-    /* il campo accept contiene tutti i campi che servono per accettare il ground di riferimento */
+    /* il campo accept contiene tutti i campi che servono per accettare il ground di riferimento 
+     * close specifica che la mano dev essere chiusa
+     * open specifica che la mano dev essere aperta
+     * 
+     * 
+     * */
     var panx = {
         sequence: [
             {gt: "leap.start", tid: 1 , accept:"close"},
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"close", iterative: true},
-                    {gt: "leap.end", tid: 1,accept:"open;move", move: "x"}
+                    {gt: "leap.end", tid: 1,accept:"move;open", move: "x", distance:3, directionX:"leftright", tollerance:0.3}
                 ]}
         ]
     };
- var pany = {
+    var pany = {
         sequence: [
             {gt: "leap.start", tid: 1 , accept:"close" },
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"close", iterative: true},
-                    {gt: "leap.end", tid: 1,accept:"open;move", move: "y"}
+                    {gt: "leap.end", tid: 1,accept:"open;move", move: "y", directionY:"downup"}
                 ]}
         ]
 
     };
-    /*
-     * 
-     * @type type
-     * 
-     * possibile che la mano si sposti 
-     * gestire con il movimento di polso e non sulla posizione del pollice
-     * 
-     */
-    var thumbLeftUp = {
-        sequence: [
-            {gt: "leap.start", tid: 1 , accept:"close;thumb", direction: "x" },
-            {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"close;thumb", direction:"y", iterative: true},
-                    {gt: "leap.end", tid: 1,accept:"close;thumb", direction: "y"}
-                ]}
-        ]
-
-    };
+   
+   
     
     //stretching hand from a fist
     /*
@@ -287,13 +205,11 @@ var container;
     };
     
     /* 
-     *      * 
+     *pressingIndex
+     *
      * 
      * finger identifica il dito interessato che fara' la gesture
-     * 
-     * 
-     * 
-     */
+    */
     var pressingIndex = {
        sequence: [
             {gt: "leap.start", tid: 1 , accept:"finger" , finger:"index"},
@@ -305,11 +221,19 @@ var container;
 
     };
 
-    
+    /*
+     * handClap 
+     * @type type
+     * 
+     * specifica il battito delle mani
+     * 
+     * 2 hands identifica che si tratta di due mani
+     *  separate identifica se le mani sono separate oppure no
+     */
     
     var handClap = {
        sequence: [
-            {gt: "leap.start", tid: 1 , accept:"2hands;palm", palmZY:"up", separate : true},
+            {gt: "leap.start", tid: 1, accept:"2hands;palm", palmZY:"up", separate : true},
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"2hands;palm", palmZY:"up", separate : true, iterative: true},
                     {gt: "leap.end", tid: 1, accept:"2hands;palm", palmZY:"up", separate: false}
@@ -408,48 +332,22 @@ var container;
     
    var input = {
         choice: [
-            fingerSnap
+            //panx, 
+            fingerSnap, 
+            //pressingIndex, 
+            //wristclockwise, 
+            //semicircle, 
+            //thumbUp,
+            //pullString,
+            //pressingButton,
+            //circleClockwise,
+            //handClap,
+            //stretchHand
         ],
         iterative: true
     };
    
-    // cambia colore della mano verde
-     djestit.onComplete(
-            ":has(:root > .gt:val(\"leap.start\"))",
-            panx,
-            function(args) {
-                console.log("line added " + args.token.palmPosition);
-               var color = 0x52ce00;
-                hands.updateHand(args.token.hand,color);
-                document.getElementById("up").textContent = "direction " + args.direction;
-               //gestureSegment.requestAnimation(args.token.palmPosition, "Start" , null,null);   
-            });
-            
-
-            
-    djestit.onComplete(
-            ":has(:root > .gt:val(\"leap.move\"))",
-            panx,
-            function(args) {                
-                console.log("action move ");
-                document.getElementById("up").textContent = "arm " + args.direction;
-                 var old1 = args.token.sequence.start[1].palmPosition;
-                 var curr1 = args.token.sequence.getById(1, 1).palmPosition;
-                 gestureSegment.requestAnimation(args.token.palmPosition, "Move" , old1, curr1 );
-                
-         });
-     
-
-
-    djestit.onError(
-            ":has(:root > .gt:val(\"leap.move\"))",
-            panx,
-            function(args) {                
-                console.log("action move error ");
-                document.getElementById("up").textContent = "gesto pan sbagliato";
-                 var color = 0xce1b2e;
-                hands.updateHand(args.token.hand,color);
-         });
+  
 
 
 
@@ -457,10 +355,11 @@ var container;
             panx,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent = "arm " + args.direction;
+                document.getElementById("gesture").textContent = "gesto pan X complete";
                 var color = 0x65ff00;
                 hands.updateHand(args.token.hand,color);
          });
+         
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
             thumbUp,
             function(args) {                
@@ -469,6 +368,7 @@ var container;
                 var color = 0x65ff00;
                 hands.updateHand(args.token.hand,color);
          });
+         
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
             pany,
             function(args) {                

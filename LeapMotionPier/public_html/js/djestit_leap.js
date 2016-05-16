@@ -6,7 +6,7 @@
     var _LEAPEND = 3;
     
     var _HandClose = 0.7;
-    var _HandOpen = 0.2;
+    var _HandOpen = 0.3;
     
     var _fingerOpen = 0.7;
     
@@ -247,7 +247,7 @@
                                 var y_high = aux.palmPosition[1];
                                 var palmEnd = [];
                                 for(var t=1; t< moveToken.length; t++){
-                                    if (moveToken[t].type2==="End"){
+                                    if (moveToken[t].type2 === "End"){
                                         posEnd[0]=(listRightLeft.length);
                                         posEnd[1]=(listLeftRight.length);
                                         posEnd[2]=(listUpDown.length);
@@ -271,10 +271,10 @@
                                         }
                                     }
                                     if (moveToken[t].palmPosition[0]<aux.palmPosition[0]-_longDistance){
-                                        listLeftRight.push(moveToken[t]);
+                                        listRightLeft.push(moveToken[t]);
                                     }else{
                                         if (moveToken[t].palmPosition[0]>aux.palmPosition[0]+_longDistance){
-                                            listRightLeft.push(moveToken[t]);
+                                            listLeftRight.push(moveToken[t]);
                                         }
                                     }
                                     
@@ -788,58 +788,7 @@
                                 }else 
                                     flag = false;
                                 break;
-                            case "thumb":
-                                if (json.direction){
-                                    switch (json.direction){
-                                        case "x":        
-                                               switch (term.type){
-                                                   case "Move":
-                                                       break;
-                                                   case "End":
-                                                     flag = flag && (Math.abs(token.thumb.direction[0]))>= _fingerOpen;
-                                                       break;
-                                                   case "Start":
-                                                      flag = flag && (Math.abs(token.thumb.direction[0]))>= _fingerOpen;
-                                                       break;
-                                               }
-                                            break;
-                                        case "y":
-                                                switch (term.type){
-                                                   case "Move":
-                                                       break;
-                                                   case "End":
-                                                        flag = flag && (Math.abs(token.thumb.direction[1]))>= _fingerOpen;
-                                                       break;
-                                                   case "Start":
-                                                        flag = flag && (Math.abs(token.thumb.direction[1]))>= _fingerOpen;
-                                                       break;
-                                               }
-                                            break;
-                                        
-                                        case "z":
-                                                 switch (term.type){
-                                                   case "Move":
-                                                       break;
-                                                   case "End":
-                                                       //flag = flag && (Math.abs(token.thumb.direction[2])=> _fingerOpen);
-                                                       break;
-                                                   case "Start":
-                                                       //flag = flag && (Math.abs(token.thumb.direction[2])=> _fingerOpen);
-                                                       break;
-                                               }
-                                            break;
-                                        
-                                        
-                                    }
-                                    
-                                    
-                                }
-                                else{
-                                    console.log("you forgot the item direction for the thumb case");
-                                }
-                                
-                                break;
-                            
+                           
                             case "newmove":
                                 if (json.move){ //spostamento  
                                     var asse = json.move.toString().split(";");
@@ -883,22 +832,33 @@
                                 if (json.move){ //spostamento  
                                     var asse = json.move.toString().split(";");
                                     var distance = 0;
-                                    if (json.distance !==null)
+                                    if (json.distance != null){
                                         distance = json.distance;
+                                        console.log("distance" + distance);
+                                    }
+                                    
+                                    var tollerance = 0.5;
+                                    if (json.tollerance != null){
+                                        tollerance = json.tollerance;
+                                    }
+                                    
                                     for(var j=0; j<asse.length; j++){
                                         switch (asse[j]){
                                                 
                                                 case "x"://spostamento asse x
                                                     if (term.type==="End"){
-                                                        console.log("listRightLeft " + listRightLeft.length + " listLeftRight " + listLeftRight.length );
 
                                                         switch(json.directionX){
 
                                                              case "leftright":
-                                                                 flag = flag && listLeftRight.length > (distance) && (listRightLeft.length === 0 );   
+
+                                                                 flag = flag && listLeftRight.length > (distance) && (listRightLeft.length <(listLeftRight.length*tollerance)); 
+                                                                  console.log("listRightLeft " + listRightLeft.length + " \n\
+                                                                    listLeftRight " + listLeftRight.length + " flag " + flag + "distanc22e  "+ distance);
+
                                                                  break;
                                                              case "rightleft":
-                                                                 flag = flag && listLeftRight.length === (0) && (listRightLeft.length >distance );                                                                  
+                                                                 flag = flag && listLeftRight.length < (listRightLeft.length * tollerance) && (listRightLeft.length > distance );                                                                  
                                                                 break;
                                                             default:
                                                                 flag = flag && (listLeftRight.length >(distance) || (listRightLeft.length >distance ));                                                                  break;
@@ -917,10 +877,10 @@
                                                          switch(json.directionY){
                                                              case "updown":
                                                                  
-                                                                flag = flag && listDownUp.length === (0) && (listUpDown.length >distance ); 
+                                                                flag = flag && listDownUp.length < (listUpDown.length * tollerance) && (listUpDown.length >distance ); 
                                                                 break;
                                                              case "downup":
-                                                                flag = flag && listDownUp.length > (distance) && (listUpDown.length ===0 ); 
+                                                                flag = flag && listDownUp.length > (distance) && (listUpDown.length < (listDownUp.length *tollerance)); 
                                                                 break;
                                                              default:
                                                                 flag = flag && (listDownUp.length > (distance) || (listUpDown.length >distance )); 
@@ -936,10 +896,10 @@
                                                              case "behindfront":
                                                                  console.log("listFrontBehin" + listFrontBehind.length + " listBehindFront "
                                                                          + listBehindFront.length );
-                                                                flag = flag && listFrontBehind.length ===(0) && (listBehindFront.length >distance ); 
+                                                                flag = flag && listFrontBehind.length < (tollerance * listBehindFront.length) && (listBehindFront.length >distance ); 
                                                                 break;
                                                              case "frontbehind":
-                                                                flag = flag && listFrontBehind.length > (distance) && (listBehindFront.length ===0 ); 
+                                                                flag = flag && listFrontBehind.length > (distance) && (listBehindFront.length < (tollerance * listFrontBehind.length) ); 
                                                                 break;
                                                              default:
                                                                 flag = flag && (listFrontBehind.length > (distance) || (listBehindFront.length >distance )); 
