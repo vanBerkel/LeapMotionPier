@@ -215,7 +215,7 @@ var container;
             {gt: "leap.start", tid: 1 , accept:"finger" , finger:"index"},
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"finger", finger:"index", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"move;finger", move:"z", directionZ:"behindfront", finger:"index" , distance:3}
+                    {gt: "leap.end", tid: 1, accept:"move;finger", move:"z", directionZ:"behindfront", finger:"index" , distance:2, tollerance:0.3}
                 ]}
         ]
 
@@ -233,10 +233,10 @@ var container;
     
     var handClap = {
        sequence: [
-            {gt: "leap.start", tid: 1, accept:"2hands;palm", palmZY:"up", separate : true},
+            {gt: "leap.start", tid: 1, accept:"2hands,open", palmZY:"up", separate : true},
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"2hands;palm", palmZY:"up", separate : true, iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"2hands;palm", palmZY:"up", separate: false}
+                    {gt: "leap.move", tid: 1, accept:"2hands,open", palmZY:"up", separate : true, iterative: true},
+                    {gt: "leap.end", tid: 1, accept:"2hands", palmZY:"up", separate: false}
                 ]}
         ]
 
@@ -253,7 +253,7 @@ var container;
             {gt: "leap.start", tid: 1 , accept:"close;position;palm", position:"up", palmXY:"up"},
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"close;palm", palmXY:"up", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"close;move;palm", palmXY:"up", move: "y", directionY: "updown", distance: 4}
+                    {gt: "leap.end", tid: 1, accept:"close;move;palm", palmXY:"up", move: "y", directionY: "updown", distance: 3}
                 ]}
         ]
 
@@ -321,10 +321,10 @@ var container;
     
     var fingerSnap  = {
        sequence: [
-            {gt: "leap.start", tid: 1 , accept:"palm;fingerUnion", palmXY:"up", finger:"index;thumb", fingerUnion:"thumb-middle"},
+            {gt: "leap.start", tid: 1 , accept:"fingerUnion", palmXY:"up", finger:"index;thumb", fingerUnion:"thumb-middle"},
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"palm", palmXY:"up", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"palm;finger", palmXY:"up", finger:"index"}
+                    {gt: "leap.end", tid: 1, accept:"palm", palmXY:"up", finger:"index"}
                 ]}
         ]
     };
@@ -333,16 +333,16 @@ var container;
    var input = {
         choice: [
             //panx, 
-            fingerSnap, 
+            //fingerSnap, 
             //pressingIndex, 
             //wristclockwise, 
             //semicircle, 
             //thumbUp,
-            //pullString,
+            pullString,
             //pressingButton,
             //circleClockwise,
-            //handClap,
-            //stretchHand
+            handClap,
+            stretchHand
         ],
         iterative: true
     };
