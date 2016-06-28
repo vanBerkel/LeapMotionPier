@@ -945,9 +945,11 @@
             
         }
         this.sequence = new LeapStateSequence(capacity);
+        
        /*? leapToEvent eventToLeap differenza?? */
         this.leapToEvent = [];
         this.eventToLeap = [];
+        
         // we do not use zero as touch identifier
         this.leapToEvent[0] = -1;
         
@@ -979,14 +981,14 @@
                     if ((token.id>=this.tokenToLeap)&& (this.tokenToLeap>-1)){
                         token.id = this.eventToLeap[this.tokenToLeap];
                         delete this.eventToLeap[token.id];
-                        this.leapToEvent[token.id] = null;
+                        //this.leapToEvent[token.id] = null;
                     }
                    break;
             }
-            if (token.type !== _LEAPEND){
-                this.sequence.push(token);
-                token.sequence = this.sequence;
-            }
+            //if (token.type !== _LEAPEND){
+                //this.sequence.push(token);
+               // token.sequence = this.sequence;
+            //}
             return token;
         };
 
