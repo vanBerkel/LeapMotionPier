@@ -411,7 +411,7 @@
                                     /*
                                     if (flag){
                                         /*
-                                        
+                                                                                                                        
                                         // altezza media
                                         //var media = Math.round((listDownUp.length)/2)-1;
                                         var media = Math.round(highest/2);
@@ -1049,13 +1049,12 @@
         this.element.on('frame', function(frame){
             if (frame.valid){
             //primo frame da analizzare
-                if ((frame.hands.length >0)&&(previousFrame ===null)){
+                if ((frame.hands.length>0)&&(previousFrame ===null)){
                     self._raiseLeapEvent(frame,_LEAPSTART);
                     previousFrame=frame;
                 }
                 else //secondo frame da analizzare
                     if (frame.hands.length>0){
-
                         self._raiseLeapEvent(frame,_LEAPMOVE);
                     }
                         else {// ultimo frame
