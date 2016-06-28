@@ -332,17 +332,17 @@ var container;
     
    var input = {
         choice: [
-            //panx, 
+            panx, 
             //fingerSnap, 
             //pressingIndex, 
             //wristclockwise, 
             //semicircle, 
             //thumbUp,
-            pullString,
+            //pullString,
             //pressingButton,
             //circleClockwise,
-            handClap,
-            stretchHand
+            //handClap,
+            //stretchHand
         ],
         iterative: true
     };

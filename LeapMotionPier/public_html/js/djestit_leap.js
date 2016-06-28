@@ -1016,7 +1016,7 @@
                 if (token.type !== _LEAPEND ){
                
                     self.root.fire(token);
-                    console.log("state -> " + self.root.state + "  self ->" + self.root.lookahead(token));
+                    console.log("state -> " + self.root.state + "  self ->" + self.root.lookahead(token) + "token.id" + token.id);
                     if (self.root.state === djestit.COMPLETE){
                         console.log("gesto completato");
                         token.sequence.frames[token.id] = [];
