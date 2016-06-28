@@ -91,70 +91,64 @@
 
    
    
-    var LeapStart = function(id) {
+    var LeapStart = function() {
         this.init();
-        this.id = id;
         this.type = "Start";
-        this._accepts = function(token) {
-               if (this.id && this.id !== null && this.id !== token.id) {
-                return false;
-            }
+        this._accepts = function() {
             return true;
         };
     };
     LeapStart.prototype = new djestit.GroundTerm();
     djestit.LeapStart = LeapStart;
 
-    var LeapMove = function(id) {
+    var LeapMove = function() {
         this.init();
-        this.id = id;
         this.type = "Move";
-        this._accepts = function(token) {
-            if (this.id && this.id !== null && this.id !== token.id) {
-                return false;
-            }
+        this._accepts = function() {
             return true;
         };
     };
     LeapMove.prototype = new djestit.GroundTerm();
     djestit.LeapMove = LeapMove;
 
-    var LeapEnd = function(id) {
+    var LeapEnd = function() {
         this.init();
-        this.id = id;
         this.type = "End";
-        this._accepts = function(token) {
-            if (this.id && this.id !== null && this.id !== token.id) {
-                return false;
-            }
+        this._accepts = function() {
+  
             return true;
         };
     };
     LeapEnd.prototype = new djestit.GroundTerm();
     djestit.LeapEnd = LeapEnd;
 
-//capacity indica quanti frame devono essere salvati
+/* 
+ * 
+ * @param {type} capacity -> numero massimo di frame per una gesture
+ * @returns {djestit_leap_L2.LeapStateSequence}
+ */
     var LeapStateSequence = function(capacity) {
         this.init(capacity);
         this.leaps = [];
-        this.l_index = [];
-        this.frames = []; //identifica tutti i frame da start fino all ultimo end
+        this.l_index = [];//identifica la prima posizione libera
+        this.first = []; //identifica dove il primo frame e' stato accettato 
+        //this.frames = []; //identifica tutti i frame da start fino all ultimo end
         this.push = function(token) {
             this._push(token);
-      
             switch (token.type) {           
                 case _LEAPSTART:
                     this.leaps[token.id] = [];
                     this.l_index[token.id] = 0;
-                    this.frames[token.id] = [];
+                    this.first[token.id] = 0; //la posizione viene stabilita durante le fasi di gesture
+                   // this.frames[token.id] = [];
                 case _LEAPMOVE: 
                 case _LEAPEND:
                     if (this.leaps[token.id].length < this.capacity) {
                         this.leaps[token.id].push(token);
                     } else {
-                       this.leaps[token.id][this.l_index[token.id]] = token;
+                       console.log("error!!you use too frames")
                     }
-                    this.l_index[token.id] = (this.l_index[token.id] + 1) % this.capacity;
+
                     break;
 
             }
@@ -163,7 +157,7 @@
         };
 
 /*ritorna i dati del token leap in un determinato istante*/
-       this.getById = function(delay, id) {
+   /*    this.getById = function(delay, id) {
             var pos = 0;
             if(this.leaps[id].length < this.capacity){
                 pos = this.l_index[id] - delay -1;
@@ -172,7 +166,7 @@
             }
             return this.leaps[id] [pos];
         };
-     
+     */
         
     };
 
@@ -186,13 +180,13 @@
         if (json.gt) {
             switch (json.gt) {
                 case "leap.start":
-                    term =  new djestit.LeapStart(json.tid);
+                    term =  new djestit.LeapStart(json);
                     break;
                 case "leap.move":
-                    term = new djestit.LeapMove(json.tid);
+                    term = new djestit.LeapMove(json);
                     break;
                 case "leap.end":
-                    term = new djestit.LeapEnd(json.tid);
+                    term = new djestit.LeapEnd(json);
                     break;
             }
             if (json.accept){
@@ -209,16 +203,17 @@
                                 var listFrontBehind = [];
                                 var listBehindFront =[];
                    
-                     if ((token.sequence.frames[json.tid]!==null) && (token.sequence.frames[json.tid].length>0)){    
-                                var moveToken = token.sequence.frames[json.tid];
-                                var aux = token.sequence.frames[json.tid][0];
-                                var start = token.sequence.frames[json.tid][0];
-
+                     if ((token.sequence.leaps[token.id]!==null) && (token.sequence.leaps[token.id].length>0)&& (token.sequence.first[token.id]>=0)) {    
+                                var moveToken = token.sequence.leaps[token.id];
+                                var aux = token.sequence.leaps[token.id][token.sequence.first[token.id]]; //token.sequence.first -> prima posizione occupata
+                                var start = token.sequence.leaps[token.id][token.sequence.first[token.id]];
+                                
+                               
                                 var posEnd = [0,0,0,0];//right,left,up,down
                                 var highest;
                                 var y_high = aux.palmPosition[1];
                                 var palmEnd = [];
-                                for(var t=1; t< moveToken.length; t++){
+                                for(var t=0 ;t< moveToken.length; t++){
                                     if (moveToken[t].type2 === "End"){
                                         posEnd[0]=(listRightLeft.length);
                                         posEnd[1]=(listLeftRight.length);
@@ -257,11 +252,7 @@
                                         if (moveToken[t].palmPosition[2]>aux.palmPosition[2]+_longDistanceZ){
                                             listFrontBehind.push(moveToken[t]);
                                         }
-                                    }
-                                    
-                                    
-                                    
-
+                                    }                                   
                                     aux = moveToken[t];                                            
                                 }
                             }
@@ -287,8 +278,6 @@
                                         break;
                                     
                                 }
-                                
-                            
                                 break
                             case "position":
                                 switch(json.position){
@@ -394,177 +383,14 @@
                                     
                                     sX = moveToken[moveToken.length-1].palmPosition[0];                               
                                     m1 = ((sY-Y1) / (sX-X1));
-                                   // var q = Y1 - (X1 * m1);
 
                                     y = ((moveToken[Math.round((moveToken.length-1-highest)/2)].palmPosition[0] - X1) * m1) + Y1;
                                         
-                                   /* console.log("2distance between y and y highest/2" + y + " " + 
-                                            moveToken[Math.round((moveToken.length-1-highest)/2)].palmPosition[1]
-                                            + "start x " + sX + "end x" + X1 + "point x" + moveToken[Math.round((moveToken.length-1-highest)/2)].palmPosition[0] 
-                                            + "final x" + moveToken[moveToken.length-1].palmPosition[0] + "distance " + distance
-                                            + "distance 20 " + (distance*0.18 ));
-                                    */
                                     var flag3 = (distance * 0.18) < (moveToken[Math.round((moveToken.length-1-highest)/2)].palmPosition[1] -y);
                                     
                                     
                                     flag = flag && (flag3 || flag2);
-                                    /*
-                                    if (flag){
-                                        /*
-                                                                                                                        
-                                        // altezza media
-                                        //var media = Math.round((listDownUp.length)/2)-1;
-                                        var media = Math.round(highest/2);
-                                        console.log("palmEnd" + palmEnd);
-                                        var endhalf = highest;
-                                        var flag3= false;
-                                        var index = endhalf;
-                                        while (index<moveToken.length && flag3 ===false){
-
-                                            console.log(index + 
-                                                    "list " + moveToken[media].palmPosition[1] + 
-                                                    "listUpD" + moveToken[index].palmPosition[1] +
-                                                    "media "+ media + "index" + index + " length " + moveToken.length
-                                                    
-                                                    );
-
-                                            if ((moveToken[index].palmPosition[1] > (moveToken[media].palmPosition[1] - _distanceY))
-                                            &&(moveToken[index].palmPosition[1] < (moveToken[media].palmPosition[1] + _distanceY))
-                                            )
-                                                    flag3 = true;
-                                                else
-                                                    index++;
-                                                
-
-                                            
-                                        }*/
-                                       // console.log("listDownUp" + listDownUp[media].palmPosition[1] + " listUpDown" + listUpDown[index].palmPosition[1] +" index" + index);
-                                        /*
-                                        if (flag3){
-                                            var sX = moveToken[endhalf].palmPosition[0];
-                                            var X1 = moveToken[media].palmPosition[0];
-                                            var sY = moveToken[endhalf].palmPosition[1];
-                                            var Y1 = moveToken[media].palmPosition[1];
-                                            
-                                            
-                                            console.log("list" + moveToken[media].palmPosition[1] + "up Down" + moveToken[index].palmPosition[1]);
-                                            
-                                            var distance = Math.abs(moveToken[media].palmPosition[0] - moveToken[index].palmPosition[0]);
-                                            
-                                            var distanceFirst = Math.sqrt(((moveToken[endhalf].palmPosition[0] - moveToken[media].palmPosition[0]) 
-                                                                  * (moveToken[endhalf].palmPosition[0] - moveToken[media].palmPosition[0])) 
-                                                                  +  ((moveToken[endhalf].palmPosition[1] - moveToken[media].palmPosition[1]) 
-                                                                  * (moveToken[endhalf].palmPosition[1] - moveToken[media].palmPosition[1]))); 
-                                            var distanceFirst2 = Math.sqrt(((moveToken[endhalf].palmPosition[0] - moveToken[index].palmPosition[0]) 
-                                                                  * (moveToken[endhalf].palmPosition[0] - moveToken[index].palmPosition[0])) 
-                                                                  +  ((moveToken[endhalf].palmPosition[1] - moveToken[index].palmPosition[1]) 
-                                                                  * (moveToken[endhalf].palmPosition[1] - moveToken[index].palmPosition[1]))); 
-                                            console.log("distance" + distance + "distanceFirst" + distanceFirst + " distanceFirst2" + distanceFirst2);
-                                            
-                                            var index2 = 0;
-                                            var flag4 = false;
-                                            index = endhalf;
-                                            while(!flag4){
-                                                 if ((moveToken[index].palmPosition[1] > (moveToken[index2].palmPosition[1] - _distanceY))
-                                                &&(moveToken[index].palmPosition[1] < (moveToken[index2].palmPosition[1] + _distanceY))
-                                                )
-                                                    flag4 = true;
-                                                else
-                                                    if (moveToken[index].palmPosition[1] > (moveToken[index2].palmPosition[1])){
-                                                        index2++;
-                                                    }
-                                                    else
-                                                    index--;
-                                                
-                                                
-                                            }
-                                            
-                                           
-                                        
-                                            
-                                            var m1 = ((Y1 - sY) / (X1 - sX));
-
-                                            console.log("m" + m1 +"firtPoint " + moveToken[index].palmPosition[1] + " firstPoint2" + moveToken[index2].palmPosition[1]    + " index " + index
-                                                    + "index2 -" + index2);
-                                            
-                                            
-                                            var q = Y1 - (X1 * m1);
-                                            
-                                            var x = (moveToken[index2].palmPosition[1] - q)/m1;
-                                            
-                                            
-                                            console.log("x " + x + "x current" + moveToken[index2].palmPosition[0]  + "index2 " + index2);
-                                            flag = flag && Math.abs(x - moveToken[index2].palmPosition[0] ) >  _longDistance;
-                                                
-                                            
-                                        }
-                                        else
-                                            flag = false;
-                                        */
-                                        
-                                        /*
-                                        
-                                        
-                                        var sX = start.palmPosition[0]; 
-                                        var eX = moveToken[moveToken.length-1].palmPosition[0];
-                                        
-                                        var sY = start.palmPosition[1];
-                                        var eY = moveToken[moveToken.length-1].palmPosition[1];
-                                        
-                                        var X2 = listUpDown[0].palmPosition[0];
-                                        var Y2 = listUpDown[0].palmPosition[1];
-                                        
-                                        
-                                        var X1 = listDownUp[listDownUp.length-1].palmPosition[0];
-                                        var Y1 = listDownUp[listDownUp.length-1].palmPosition[1];
-                                        
-                                        var m1 = Math.round(((Y1 - sY) / (X1 - sX)) * 100) / 100;
-                                        
-                                        console.log("m" + m1);
-                                      /*
-                                        for (var count = 0; count< listDownUp.length; count++){
-                                                X1 = listDownUp[count].palmPosition[0];
-                                                Y1 = listDownUp[count].palmPosition[1];
-                                                m1 = Math.round(((Y1 - sY) / (X1 - sX)) * 100) / 100;
-                                                console.log (count + "listDownUp m1 " + m1);
-                                        
-                                        }                                       
-                                        */
-                                        
-                                        /*
-                                         * var centerPointX = (sX + eX + X1 + X2)/4;
-                                        var centerPointY = (sY + eY + Y1 + Y2)/4;
-                                        
-                                        var raggio1 = Math.sqrt(((sX - centerPointX) * (sX - centerPointX)) +((sY - centerPointY) * (sY - centerPointY)));
-                                        var raggio3 = Math.sqrt(((X1 - centerPointX) * (X1 - centerPointX)) +((Y1 - centerPointY) * (Y1 - centerPointY)));
-                                        var raggio4 = Math.sqrt(((X2 - centerPointX) * (X2 - centerPointX)) +((Y2 - centerPointY) * (Y2 - centerPointY)));
-
-                                       
-                                        var raggio2 = Math.sqrt(((eX - centerPointX) * (eX - centerPointX)) +((eY - centerPointY) * (eY - centerPointY)));
-                                       
-                                       
-                                        console.log( "raggio" + raggio1 + " raggio2" + raggio2 + "raggio3" + raggio3 + "raggio4" + raggio4
-                                        + "raggiomedia" + (raggio1+raggio2+raggio3+raggio4)/4 );
-
-                                        for (var count = 0; count< listDownUp.length; count++){
-                                                sX = listDownUp[count].palmPosition[0];
-                                                sY = listDownUp[count].palmPosition[1];
-                                                raggio1 = Math.sqrt(((sX - centerPointX) * (sX - centerPointX)) +((sY - centerPointY) * (sY - centerPointY)));
-
-                                                console.log (count + "listDownUp" + raggio1);
-                                        
-                                        }
-                                        for (var count = 0; count< listUpDown.length; count++){
-                                                sX = listUpDown[count].palmPosition[0];
-                                                sY = listUpDown[count].palmPosition[1];
-                                                raggio1 = Math.sqrt(((sX - centerPointX) * (sX - centerPointX)) +((sY - centerPointY) * (sY - centerPointY)));
-
-                                                console.log (count + "listUpDown" + raggio1);
-                                        }
-                                       
-                                      
-                                    }*/
-                                
+                                   
                                 }
                                 break;
                             case "palm":
@@ -803,13 +629,13 @@
                                 if (json.move){ //spostamento  
                                     var asse = json.move.toString().split(";");
                                     var distance = 0;
-                                    if (json.distance != null){
+                                    if (json.distance !== null){
                                         distance = json.distance;
                                         //console.log("distance" + distance);
                                     }
                                     
                                     var tollerance = 0.5;
-                                    if (json.tollerance != null){
+                                    if (json.tollerance !== null){
                                         tollerance = json.tollerance;
                                     }
                                     
@@ -895,21 +721,22 @@
                         
                         
                 }
-                    if (flag){
+                    if (flag){ // accettato il ground term allora aggiorna la lista di frame in leaps
                         token.type2 = term.type;
-                        if ((token.sequence.frames[json.tid].length ===0) || ((token.sequence.frames[json.tid]!==null) && (token.sequence.frames[json.tid].length>0) &&
-                            (token.sequence.frames[json.tid][token.sequence.frames[json.tid].length-1].palmPosition[0] !== token.palmPosition[0]))){
-                            token.sequence.frames[json.tid].push(token);
-                        }   
-                        
-                                 }
+                        if (json.gt === "leap.start"){
+                            token.type = _LEAPSTART;
+                            
+                        }
+                        token.sequence.push(token);                           
+                                     
+                     }else
+                        if (token.sequence.length > 0){
+                            token.sequence[token.id] = null;
+                        }
                     return flag ;
                 }
                 return false;
-                };
-                
-                    
-                    
+                };     
             }
             return term;
         }   
@@ -944,7 +771,7 @@
             
             
         }
-        this.sequence = new LeapStateSequence(capacity);
+       this.sequence = new LeapStateSequence(capacity);
         
        /*? leapToEvent eventToLeap differenza?? */
         this.leapToEvent = [];
@@ -961,44 +788,36 @@
             var token = new LeapToken(leap, type);
             switch (type) {
                 case _LEAPSTART: //mano rilevata
-                    
-                    var leapId = this.firstId(token.id);
-                    console.log("eventToLeap leapID" + leapId + " " + token.id);
-                    //var leapId2= this.firstId2(token.id);
-                    this.eventToLeap[token.id] = leapId;                
-                    this.tokenToLeap = token.id;
-                    this.leapToEvent[leapId] = [token.id];
-                    token.id = leapId;  
-                    break;
                 case _LEAPMOVE: //mano continua ad essere rilevata
-                    // console.log("LeapMove > " +token.id);
-                    if (token.id>this.tokenToLeap)
+                    if ((this.tokenToLeap >= 0)&&(token.id>this.tokenToLeap))
                         token.id = this.eventToLeap[this.tokenToLeap];
-                    else
-                        console.log("error");
+                    else{ //la mano viene rilevata per la prima volta oppure la gesture precedente e` stata riconosciuta oppure fallita
+                        var leapId = this.firstId(token.id);
+                        console.log("eventToLeap leapID" + leapId + " " + token.id);
+                        //var leapId2= this.firstId2(token.id);
+                        this.eventToLeap[token.id] = leapId;                
+                        this.tokenToLeap = token.id;
+                        this.leapToEvent[leapId] = [token.id];
+                        token.id = leapId; 
+                        
+                    }
+                        
                    break;
                 case _LEAPEND: //mano fuori dalla vista
                     if ((token.id>=this.tokenToLeap)&& (this.tokenToLeap>-1)){
                         token.id = this.eventToLeap[this.tokenToLeap];
                         delete this.eventToLeap[token.id];
-                        //this.leapToEvent[token.id] = null;
+                   
                     }
                    break;
             }
-            //if (token.type !== _LEAPEND){
-                //this.sequence.push(token);
-               // token.sequence = this.sequence;
-            //}
+            
+            if (type!==_LEAPEND)
+                  token.sequence = this.sequence;
             return token;
         };
 
         this.firstId = function(id) {
-            for (var i = 1; i < this.leapToEvent.length; i++) {
-                if (this.leapToEvent[i] === null) {
-                    return i;
-                }
-                return 1;
-            }
             this.leapToEvent.push(id);
             return this.leapToEvent.length - 1;
         };
@@ -1014,22 +833,24 @@
  * 
  */
         this._raiseLeapEvent = function(frame, name) {
+            
                 var token = self.generateToken(name, frame);
+                
                 if (token.type !== _LEAPEND ){
                
                     self.root.fire(token);
                     console.log("state -> " + self.root.state + "  self ->" + self.root.lookahead(token) + "token.id" + token.id);
                     if (self.root.state === djestit.COMPLETE){
                         console.log("gesto completato");
-                        token.sequence.frames[token.id] = [];
+                        this.tokenToLeap = -1; // la gesture e' stata rilevata  viene resetato il valore del primo id della prossima gesture
                         self.root.reset();
                         
                     }
                    if ((self.root.state === djestit.ERROR) || (!self.root.lookahead(token))){
+                       //se la gesture termina con un errore leaptoEvent in quella posizione viene liberato
                         console.log("gesto non completato");
-                        token.sequence.frames[token.id] = [];    
                         self.root.reset();
-                        
+                       
                     }
                         
                         
@@ -1073,6 +894,7 @@
         
         this.element.on('hand', function(hand) {
                 //self._raiseLeapEvent(hand,_LEAPMOVE);
+              
                 hands.updateHand(hand,null);
         });
         this.element.on('handFound', function(hand) {

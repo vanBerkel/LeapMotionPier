@@ -485,7 +485,7 @@ var container;
                 hands.updateHand(args.token.hand,color);});           
             
     var controller = new Leap.Controller({enableGesture: true});
-    var lsensor = new djestit.LeapSensor(controller, hands, input, 3);
+    var lsensor = new djestit.LeapSensor(controller, hands, input, 200);
 
  
 
