@@ -177,10 +177,10 @@ var container;
      */
     var stretchHand = {
         sequence: [
-            {gt: "leap.start", tid: 1 , accept:"close" },
+            {gt: "leap.start" , accept:"close" },
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"close", iterative: true},
-                    {gt: "leap.end", tid: 1,accept:"open" }
+                    {gt: "leap.move", accept:"close", iterative: true},
+                    {gt: "leap.end",accept:"open" }
                 ]}
         ]
 
@@ -233,10 +233,10 @@ var container;
     
     var handClap = {
        sequence: [
-            {gt: "leap.start", tid: 1, accept:"2hands,open", palmZY:"up", separate : true},
+            {gt: "leap.start", accept:"2hands;open", palmZY:"up", separate : true},
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"2hands,open", palmZY:"up", separate : true, iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"2hands", palmZY:"up", separate: false}
+                    {gt: "leap.move", accept:"2hands;open", palmZY:"up", separate : true, iterative: true},
+                    {gt: "leap.end",  accept:"2hands", palmZY:"up", separate: false}
                 ]}
         ]
 
@@ -244,16 +244,16 @@ var container;
     
     
     /*palm identifica la posizione della mano rispetto gli assi x ed y 
-     * position: up, down, right, left, center, upright, upleft, downright,downleft 
+     * location: up, down, right, left, center 
      *          identifica in quale posizione si trova la mano rispetto al leap motion considerando solo altezza e left rigth
      *          ma non la profondita'
      * */
     var pullString = {
        sequence: [
-            {gt: "leap.start", tid: 1 , accept:"close;position;palm", position:"up", palmXY:"up"},
+            {gt: "leap.start", accept:"close;location;palm", position:"up", palmXY:"up"},
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"close;palm", palmXY:"up", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"close;move;palm", palmXY:"up", move: "y", directionY: "updown", distance: 3}
+                    {gt: "leap.move",  accept:"close;palm", palmXY:"up", iterative: true},
+                    {gt: "leap.end", accept:"close;move;palm", palmXY:"up", move: "y", directionY: "updown", distance: 3}
                 ]}
         ]
 

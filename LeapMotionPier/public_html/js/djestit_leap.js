@@ -8,11 +8,18 @@
     var _HandClose = 0.7;
     var _HandOpen = 0.3;
     
+    var _positionUpDown = 100;
+    var _positionDownUp = 50;
+    var _positionRight = 80;
+    var _positionLeft = -80;
+    var _positionCenter = 20;
+    
+    
     var _fingerOpen = 0.7;
     
     var _handClapDistance = 45;
     
-    var positionUp = 200; // position y>100
+
     var _handMove = 20;
     var _leftHand = "left";
     var _rightHand = "right";
@@ -51,10 +58,10 @@
   
             this.pointable = leap.pointables;
             this.hand = leap.hands[0];
+            
+            //controllo sulle mani
             if (leap.hands.length >1){
                 this.hands2 = leap.hands[1];
-                //console.log(this.hand.palmPosition[0]- this.hands2.palmPosition[0] + "ssss");
-
                 if ((Math.abs((this.hand.palmPosition[0] - this.hands2.palmPosition[0])) < _handClapDistance)&&
                         (Math.abs(this.hand.palmPosition[1] - this.hands2.palmPosition[1]) <5)
                         && ((Math.abs((this.hand.palmPosition[2] - this.hands2.palmPosition[2])) < 50))
@@ -65,18 +72,26 @@
                 else 
                     this.separate = true;
                 
+                
+            
+            
             }
          
-           
+           //controlla se la mano è chiusa 
             if (this.hand.grabStrength >= _HandClose)
                 this.close = true;
             else
                 this.close = false;
-
+            
+            //controlla se la mano è aperta
             if (this.hand.grabStrength <= _HandOpen)
                 this.open = true;
             else 
                 this.open = false;
+  
+   
+  
+  
   
             this.palmPosition = this.hand.palmPosition;
     
@@ -180,13 +195,13 @@
         if (json.gt) {
             switch (json.gt) {
                 case "leap.start":
-                    term =  new djestit.LeapStart(json);
+                    term =  new djestit.LeapStart();
                     break;
                 case "leap.move":
-                    term = new djestit.LeapMove(json);
+                    term = new djestit.LeapMove();
                     break;
                 case "leap.end":
-                    term = new djestit.LeapEnd(json);
+                    term = new djestit.LeapEnd();
                     break;
             }
             if (json.accept){
@@ -268,7 +283,7 @@
 
                                 break;
                                 
-                            case "take": // which data takes updown
+                          /*  case "take": // which data takes updown
                                 switch(json.take){
                                     case "updown": //remove the listDownUp
                                         listDownUp.splice(0,listDownUp.length-1);
@@ -278,41 +293,44 @@
                                         break;
                                     
                                 }
-                                break
-                            case "position":
-                                switch(json.position){
-                                    case "up":
-                                        flag = flag && token.palmPosition[1] > 100;
-                                        break;
-                                    case "down":
-                                        flag = flag && token.palmPosition[1] < 100;
-                                        break;
-                                    case "right":
-                                        flag = flag && token.palmPosition[0] > 80;
-                                        break;
-                                    case "left":
-                                        flag = flag && token.palmPosition[0] < (-80);
-                                        break;
-                                    case "center":
-                                        flag = flag && (token.palmPosition[0] >(-20) && token.palmPosition[0] <(20)) ;
-                                        break;
-                                    case "upright":
-                                       // console.log("position upright not definied");
-                                        break;
-                                    case "upleft":
-                                        //console.log("position upleft not definied");
-                                        break;
-                                    case "downright":
-                                        //console.log("position downright not definied");
-                                        break;
-                                    case "downleft":
-                                        //console.log("position downleft not definied");
-                                        break;
+                                break*/
                                     
-                                    
-                                    
+                        /*...*/                                
+                        case "location":// identifica la posizione della mano rispetto a 6 posizioni  
+                            /*le posizioni possono essere "up,down,left,right,center" 
+                            * possono essere accoppiate tra di loro ad esempio:
+                            * location === "up;left" --> la mano si trova in alto a sx
+                            * !! certi accoppiamenti non hanno senso ad esempio:
+                            * location === "up;down" --> il flag risultera' sempre falso perchè la
+                            * mano non si può trovare sia in alto(up) che in basso (down)*/
+                            var location = json.location.toString().split(";");
+                            if (location.length>2)
+                                flag = false;
+                            else{
+                                for(var h=0; h<location.length; h++){
+                                    switch(location[h]){
+                                        case "up": // la mano si trova in alto rispetto al Leap
+                                            flag = flag && token.palmPosition[1] > _positionUpDown;
+                                            break;
+                                        case "down": //la mano si trova in altezza vicino al Leap
+                                            flag = flag && token.palmPosition[1] < _positionDownUp;
+                                            break;
+                                        case "right": // la mano si trova a destra rispetto al Leap
+                                            flag = flag && token.palmPosition[0] > _positionRight;
+                                            break;
+                                        case "left": // la mano si trova a sinistra rispetto al Leap
+                                            flag = flag && token.palmPosition[0] < _positionLeft;
+                                            break;
+                                        case "center": /*la mano si trova tra la posizione 
+                                                        sx(left) e la posizione dx(right)*/
+                                            flag = flag && (token.palmPosition[0] >(_positionLeft) 
+                                                    && token.palmPosition[0] <(_positionRight)) ;
+                                            break;
+                                     }
                                 }
-                                break;
+                            }
+                            break;
+                            /*...*/
                             case "2hands":
                                 if (token.hands2){
                                         flag = flag && (json.separate === token.separate)
@@ -393,10 +411,13 @@
                                    
                                 }
                                 break;
-                            case "palm":
-                                
-                                switch (json.palmXY){
-                                    case "normalUp"://mano rivolta verso l alto
+                            case "palm": //controlla in che posizione si trova il palmo della mano
+                                switch (json.palmXY){ //controlla il palmo della mano considerando solo gli assi X e Y
+                                    case "normalUp"://palmo della mano rivolta verso l'alto
+                                        
+                                        /* a seconda della mano di riferimento (destra, sinistra) il controllo per capire in che posizione 
+                                         * si trova il palmo della mano cambia
+                                         */    
                                         if (token.hand.type === _rightHand){
                                             flag = flag && ((token.hand.roll())> (5*Math.PI/6) ||((token.hand.roll()) <(-5*Math.PI/6)));
                                         }
@@ -404,10 +425,9 @@
                                             flag = flag && ((token.hand.roll())< (Math.PI/12) ||((token.hand.roll()) > (-Math.PI/12)));
                                         }
                                          break;
-                                    case "normalDown":
+                                    case "normalDown"://palmo della mano rivolta verso il basso
                                         if (token.hand.type === _rightHand){
                                             flag = flag && ((token.hand.roll())< (Math.PI/12) ||((token.hand.roll()) > (-Math.PI/12)));
-                                            //console.log("flag normalDown", flag);
                                         }
                                         else{
                                             flag = flag && ((token.hand.roll())> (5*Math.PI/6) ||((token.hand.roll()) <(-5*Math.PI/6)));
