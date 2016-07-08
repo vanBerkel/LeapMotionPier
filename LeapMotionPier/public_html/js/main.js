@@ -269,17 +269,17 @@ $(document).ready(function() {
     
    var input = {
         choice: [
-            //panx, 
-            //fingerSnap, 
+            panx, 
+            fingerSnap, 
             pressingIndex, 
-            //wristclockwise, 
-            //semicircle, 
-            //thumbUp,
-            //pullString,
-            //pressingButton,
-            //circleClockwise,
-            //handClap,
-            //stretchHand
+            wristclockwise, 
+            semicircle, 
+            thumbUp,
+            pullString,
+            pressingButton,
+            circleClockwise,
+            handClap,
+            stretchHand
         ],
         iterative: true
     };
@@ -287,32 +287,29 @@ $(document).ready(function() {
   
 
 
-/*
+
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
             panx,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent = "gesto pan X complete";
-                var color = 0x65ff00;
-                hands.updateHand(args.token.hand,color);
+                document.getElementById("gesture").textContent += "</br>gesto pan X complete";
+               
          });
          
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
             thumbUp,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent = "gesto pan thumb Up completato";
-                var color = 0x65ff00;
-                hands.updateHand(args.token.hand,color);
+                document.getElementById("gesture").textContent += "</br>gesto pan thumb Up completato";
+               
          });
          
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
             pany,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent = "gesto pan Y completato";
-                var color = 0x65ff00;
-                hands.updateHand(args.token.hand,color);
+                document.getElementById("gesture").textContent += "</br>gesto pan Y completato";
+               
    });
    
    
@@ -320,45 +317,41 @@ $(document).ready(function() {
             stretchHand,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent = "gesture Stretching the hand from fist complete";
-                var color = 0x65ff00;
-                hands.updateHand(args.token.hand,color);
+                document.getElementById("gesture").textContent += "</br>gesture Stretching the hand from fist complete";
+                
    });
    
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
             circleClockwise,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent = "gesture circle clockwise with the index Finger complete";
-                var color = 0x65ff00;
-                hands.updateHand(args.token.hand,color);
+                document.getElementById("gesture").textContent += "</br>gesture circle clockwise with the index Finger complete";
+               
    });
-    */
+    
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
             pressingIndex,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent = "gesture pressing a Button with the index Finger complete";
+                document.getElementById("gesture").textContent += "</br>gesture pressing a Button with the index Finger complete";
    });
    
   
-   /*
+   
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
             handClap,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent = "gesture hand clap complete";
-                var color = 0x65ff00;
-                hands.updateHand(args.token.hand,color);
+                document.getElementById("gesture").textContent += "</br>gesture hand clap complete";
+               
    });
          
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
             pullString,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent = "gesture pulling a string downward complete";
-                var color = 0x65ff00;
-                hands.updateHand(args.token.hand,color);
+                document.getElementById("gesture").textContent += "</br>gesture pulling a string downward complete";
+                
    });
    
    
@@ -366,18 +359,16 @@ $(document).ready(function() {
             pressingButton,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent = "gesture pressing button complete";
-                var color = 0x65ff00;
-                hands.updateHand(args.token.hand,color);
+                document.getElementById("gesture").textContent += "</br>gesture pressing button complete";
+               
    });
           
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
             fingerSnap,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent = "gesture finger Snap complete";
-                var color = 0x65ff00;
-                hands.updateHand(args.token.hand,color);
+                document.getElementById("gesture").textContent += "</br>gesture finger Snap complete";
+               
    });
    
    
@@ -386,12 +377,11 @@ $(document).ready(function() {
             fingerSnap,
             function(args) {
                 console.log("line added " + args.token.palmPosition);
-               var color = 0x52ceff;
-                hands.updateHand(args.token.hand,color);
+              
             });
             
             
-            
+            /*
     djestit.onComplete( ":has(:root > .end:val(\"1\"))",
             semicircle,
             function(args) {                
@@ -405,22 +395,25 @@ $(document).ready(function() {
                
                 var color = 0x65ffaa;
                 hands.updateHand(args.token.hand,color);});    
-            
+            */
       djestit.onComplete( ":has(:root > .end:val(\"3\"))",
             semicircle,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent = "gesture semicircle complete";
-                var color = 0x65ff00;
-                hands.updateHand(args.token.hand,color);});         
+                document.getElementById("gesture").textContent += "</br>gesture semicircle complete";
+                });         
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\") )",
             wristclockwise,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent = "gesture wristclockwise complete";
-                var color = 0x65ff00;
-                hands.updateHand(args.token.hand,color);});           
-            */
+                document.getElementById("gesture").textContent += "</br>gesture wristclockwise complete";
+               });           
+            
+    
+    /* Crea un nuovo oggetto di tipo LeapSensor 
+     * con in ingresso le espressioni descritte precedentemente
+     * l-ultimo identifica il massimo numero di frame che puo contenere per rilevare un gesto
+     */
     
     var lsensor = new djestit.LeapSensor(input, 200);
 
