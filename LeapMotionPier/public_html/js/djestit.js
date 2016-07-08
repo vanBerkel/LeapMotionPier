@@ -611,6 +611,7 @@
      * @returns {Term} the expression term
      */
     var expression = function(json) {
+        console.log("Expression");
         var exp = null;
         var ch = [];
         if (json.choice) {
@@ -636,10 +637,14 @@
         if (json.sequence) {
             exp = new Sequence();
             ch = json.sequence;
+                                            console.log("sequence");
+
         }
 
         if (json.gt) {
             if (djestit._groundTerms[json.gt] !== undefined) {
+                console.log("gt");
+
                 exp = djestit._groundTerms[json.gt](json);
             }
         }
@@ -661,6 +666,8 @@
         if (json.iterative && json.iterative === true) {
             var it = exp;
             exp = new Iterative(it);
+                                                        console.log("iterative");
+
         }
 
         return exp;

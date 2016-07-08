@@ -1,5 +1,7 @@
 
-(function(djestit, undefined) {
+/* global THREE, Leap, controller */
+
+(function(djestit) {
 
     var _LEAPSTART = 1;
     var _LEAPMOVE = 2;
@@ -29,8 +31,10 @@
     var _differenceDistance = 6;
     
     var _distanceY = 10;
-
-
+    
+    var _colorAccept = 0x65ff00;
+    var _colorDefault = 0x9100ce;
+    var _colorNew = _colorDefault;
 
     //leap e' il frame da analizzare considera la mano 
     var LeapToken = function(leap, type) {
@@ -161,7 +165,7 @@
                     if (this.leaps[token.id].length < this.capacity) {
                         this.leaps[token.id].push(token);
                     } else {
-                       console.log("error!!you use too frames")
+                       console.log("error!!you use too frames");
                     }
 
                     break;
@@ -191,6 +195,7 @@
     djestit.LeapStateSequence = LeapStateSequence;
 
     djestit.leapExpression = function(json) {
+        console.log("leapExpression");
         var term;
         if (json.gt) {
             switch (json.gt) {
@@ -339,7 +344,7 @@
                                     flag = false;
                                 break;
                             
-                            case "samePosition": /// same position range 30+-
+                           /* case "samePosition": /// same position range 30+-
                                 var samePosition = json.samePosition.toString().split(";");
                                 if (start!==null) 
                                     for(var k=0; k<samePosition.length;k++){
@@ -360,7 +365,7 @@
 
                                     }
                                 
-                                break;
+                                break;*/
                             case "open":
                                 flag = flag && token.open;
                                 break;
@@ -512,19 +517,25 @@
                                                     fingerE[0]=true; 
                                                     break;
                                                 case "index":
+                                                    //console.log("pointable " +token.hand.fingers[1].extended);
+
                                                     fingerE[1]=true; 
                                                     break;
                                                 case "middle":
                                                     fingerE[2]=true; 
+                                                case "ring":
+                                                    fingerE[3]=true; 
+                                                case "middle":
+                                                    fingerE[4]=true; 
                                                     break;
                                     }
                                 }
                                 
                                 flag = flag && (token.hand.fingers[0].extended===fingerE[0])  && (token.hand.fingers[1].extended === fingerE[1])
-                                                   && (!token.hand.fingers[2].extended === fingerE[2]) && (token.hand.fingers[3].extended === fingerE[3]) && 
+                                                   && (token.hand.fingers[2].extended === fingerE[2]) && (token.hand.fingers[3].extended === fingerE[3]) && 
                                                    (token.hand.fingers[4].extended === fingerE[4]);
                                            
-                                           console.log("flag extended" + flag + "index" + fingerE[1] + "token" +token.hand.fingers[1].extended);
+                                        //   console.log("flag extended" + flag + "index" + fingerE[1] + "token" +token.hand.fingers[1].extended);
                                 
                                 break;
                                 
@@ -765,7 +776,7 @@
     
 
     
-    
+
     djestit.registerGroundTerm("leap.start", djestit.leapExpression);
     djestit.registerGroundTerm("leap.move", djestit.leapExpression);
     djestit.registerGroundTerm("leap.end", djestit.leapExpression);
@@ -780,16 +791,12 @@
  * root rappresenta la lista dei groundTerm
  * 
  */
-    var LeapSensor = function(element, hands, root, capacity) {
-        
-        this.element = element;
+    var LeapSensor = function(root, capacity) {
         if (root instanceof djestit.Term) {
             this.root = root; //attributo term, rappresenta la lista
         } else {
+            console.log("expressionroot");
             this.root = djestit.expression(root); // analizza root il file json
-           
-            
-            
         }
        this.sequence = new LeapStateSequence(capacity);
         
@@ -852,96 +859,100 @@
  * @returns {undefined}
  * 
  */
-        this._raiseLeapEvent = function(frame, name) {
-            
-                var token = self.generateToken(name, frame);
-                
-                if (token.type !== _LEAPEND ){
-               
+        this.handsU = {
+            scale: 1.3,
+            materialOptions: {
+                    color: new THREE.Color(_colorNew)
+            }
+        };
+        this._raiseLeapEventHand = function(token) {
                     self.root.fire(token);
                     console.log("state -> " + self.root.state + "  self ->" + self.root.lookahead(token) + "token.id" + token.id);
                     if (self.root.state === djestit.COMPLETE){
-                        console.log("gesto completato");
-                        this.tokenToLeap = -1; // la gesture e' stata rilevata  viene resetato il valore del primo id della prossima gesture
+                        
+                        this.handsU.materialOptions.color.set(_colorAccept);
+                        setTimeout(function(s){
+                             s.materialOptions.color.set(_colorDefault); 
+                         }, 3000,this.handsU);
+                        console.log(self.root);
+                        // la gesture e' stata rilevata  viene resetato il valore del primo id della prossima gesture
+
+                        this.tokenToLeap = -1; 
+                        
                         self.root.reset();
                         
                     }
                    if ((self.root.state === djestit.ERROR) || (!self.root.lookahead(token))){
-                       //se la gesture termina con un errore leaptoEvent in quella posizione viene liberato
+                         
                         console.log("gesto non completato");
                         self.root.reset();
                        
                     }
                         
                         
-                }
-        };
-
-            
                 
+        };
+              
+        this.handME = function (handMesh){
+         //   handMesh.castShadow = true;
+           // handMesh.depthTest = true;
+            handMesh.material.opacity = 1;
+          
+        };
+        this._raiseLeapEventStart = function (frame,name){
+            //aggiornamento della schermata           
+            controller.use('riggedHand', this.handsU);
+            controller.on('riggedHand.meshAdded', this.handME );
+
+            var riggedHand = controller.plugins.riggedHand;
+            var camera = riggedHand.camera;
+            camera.position.set(-8,8,20);
+            camera.lookAt(new THREE.Vector3(0,0,0));
+
+            var token =  self.generateToken(name, frame);
+            this._raiseLeapEventHand(token);
+        };
+            
+        this._raiseLeapEventMove= function(frame,name){
+            var token =  self.generateToken(name, frame);
+            this._raiseLeapEventHand(token);
+        };
+        
+        this._raiseLeapEventEnd = function(frame,name){
+           var token =  self.generateToken(name, frame);
+        }; 
        /* this.element.on('connect', function(){
             setInterval(function(){
             
             }, 200);
         });       */ 
-                
-        this.element.streaming();    
-        
-
+        controller = new Leap.Controller({enableGesture: true});
+        controller.streaming();    
         var previousFrame = null;
-        this.element.on('frame', function(frame){
+        controller.on('frame', function(frame){
             if (frame.valid){
             //primo frame da analizzare
                 if ((frame.hands.length>0)&&(previousFrame ===null)){
-                    self._raiseLeapEvent(frame,_LEAPSTART);
+                    self._raiseLeapEventStart(frame,_LEAPSTART);
                     previousFrame=frame;
                 }
                 else //secondo frame da analizzare
                     if (frame.hands.length>0){
-                        self._raiseLeapEvent(frame,_LEAPMOVE);
+                        self._raiseLeapEventMove(frame,_LEAPMOVE);
                     }
                         else {// ultimo frame
                             previousFrame=null;
-                            self._raiseLeapEvent(frame,_LEAPEND);
+                            //self._raiseLeapEventEnd(frame,_LEAPEND);
+                            self._raiseLeapEventEnd(frame,_LEAPEND);
                         }
             }
-        });
+        });     
         
-        
-        
-        this.element.use('handHold');
-        this.element.use('handEntry');
-        
-        this.element.on('hand', function(hand) {
-                //self._raiseLeapEvent(hand,_LEAPMOVE);
-              
-                hands.updateHand(hand,null);
-        });
-        this.element.on('handFound', function(hand) {
-                document.getElementById("up").textContent = "fai un gesto";
-               // self._raiseLeapEvent(hand,_LEAPSTART);
-
-                hands.newHand(hand,null);
-        });
-        this.element.on('handLost', function(hand) {
-                document.getElementById("up").textContent = "metti la mano sopra il leap motion";
-                hands.lostHand(hand);
-              //  self._raiseLeapEvent(hand,_LEAPEND)
-        });
-        
-        
-        
+ 
         
        
-            
+        controller.connect();
 
-           
-     this.element.connect();
-        
-        
-        
-        
-        
     };
 
     djestit.LeapSensor = LeapSensor;

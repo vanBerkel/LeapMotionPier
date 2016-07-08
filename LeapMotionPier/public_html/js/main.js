@@ -22,121 +22,7 @@ var config = {
 
 
 $(document).ready(function() {
-var container;
-    var camera, controls, scene, renderer, pointVis,hands, help, record;
-    var gesturePoints = [];
-    init();
-    animate();
 
-    function init() {
-
-        //camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
-        camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 3, 2000);
-        camera.position.fromArray([0, 50, 650]);
-        camera.lookAt(new THREE.Vector3(0, 200, 600));
-
-        $("#container").height(window.innerHeight - config.titleHeight);
-        controls = new THREE.TrackballControls(camera, $("#container")[0]);
-
-        controls.rotateSpeed = 1.0;
-        controls.zoomSpeed = 1.2;
-        controls.panSpeed = 0.8;
-
-        controls.noZoom = false;
-        controls.noPan = false;
-
-        controls.staticMoving = true;
-        controls.dynamicDampingFactor = 0.3;
-
-        controls.keys = [65, 83, 68];
-
-        controls.addEventListener('change', render);
-
-        controls.handleResize();
-        // world
-
-        scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0xffffff);
-
-        // lights
-
-        light = new THREE.DirectionalLight(0xffffff);
-        light.position.set(1, 1, 1);
-        scene.add(light);
-
-        // renderer
-
-        renderer = new THREE.WebGLRenderer({antialias: false});
-        renderer.setClearColor(scene.fog.color, 1);
-        renderer.setSize($("#container").width(), $("#container").height());
-
-        container = document.getElementById('container');
-        container.appendChild(renderer.domElement);
-
-
-        /*var geometry = new THREE.PlaneGeometry(1000, 700);
-         
-         var material = new THREE.MeshBasicMaterial({color: 0xcccccc, side: THREE.DoubleSide, opacity: .4, transparent: true});
-         var plane = new THREE.Mesh(geometry, material);
-         plane.position.set(0, 0, 0);
-         scene.add(plane);*/
-
-        hands = new HandMesh();
-        hands.onUpdate(render);
-        hands.mesh().translateY(-config.translateY);
-        scene.add(hands.mesh());
-
-        pointVis = new THREE.Object3D();
-        pointVis.translateY(-config.translateY);
-        scene.add(pointVis);
-
-        help = new THREE.Object3D();
-        help.translateY(-config.translateY);
-        scene.add(help);
-
-        window.addEventListener('resize', onWindowResize, false);
-
-        //
-//        record = function(hand) {
-//            hand.indexFinger.bones[3].nextJoint[2] < 0;
-//        };
-        render();
-
-    }
-
-    function animate() {
-
-        requestAnimationFrame(animate);
-        controls.update();
-
-    }
-
-    function render() {
-
-        renderer.render(scene, camera);
-
-    }
-    
-    function onWindowResize() {
-
-
-        $("#container").height(window.innerHeight - config.titleHeight);
-        renderer.setSize($("#container").width(), $("#container").height());
-
-        camera.aspect = $("#container").width() / $("#container").height();
-        camera.updateProjectionMatrix();
-
-
-        controls.handleResize();
-
-        render();
-
-    }
-     gestureSegment.render = this.renderer;
-        gestureSegment.helpMesh = help;
-       gestureSegment.camera = this.camera;
-       gestureSegment.scene = this.scene;
-        gestureSegment.config = config;
      
     
     /* il campo accept contiene tutti i campi che servono per accettare il ground di riferimento 
@@ -164,6 +50,11 @@ var container;
         ]
 
     };
+   
+                                                      // console.log("pointable " +token.hand.fingers[0].extended);
+
+            
+            
    
    
     
@@ -195,13 +86,12 @@ var container;
      */
    var circleClockwise = {
        sequence: [
-            {gt: "leap.start", tid: 1 , accept:"circle" , finger:"index"},
+            {gt: "leap.start", accept:"circle" , finger:"index"},
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"circle", iterative: true},
-                    {gt: "leap.end", tid: 1,accept:"circle",clockwise:true  }
+                    {gt: "leap.move", accept:"circle", iterative: true},
+                    {gt: "leap.end",accept:"circle",clockwise:true  }
                 ]}
         ]
-
     };
     
     /* 
@@ -212,13 +102,15 @@ var container;
     */
     var pressingIndex = {
        sequence: [
-            {gt: "leap.start", tid: 1 , accept:"finger" , finger:"index"},
+            {gt: "leap.start", accept:"finger" , finger:"index"},
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"finger", finger:"index", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"move;finger", move:"z", directionZ:"behindfront", finger:"index" , distance:2, tollerance:0.3}
+                    {gt: "leap.move",  accept:"finger", finger:"index", 
+                        iterative: true},
+                    {gt: "leap.end", accept:"move;finger", move:"z", 
+                        directionZ:"behindfront", finger:"index" , distance:2, 
+                        tollerance:0.3}
                 ]}
         ]
-
     };
 
     /*
@@ -233,16 +125,16 @@ var container;
     
     var handClap = {
        sequence: [
-            {gt: "leap.start", accept:"2hands;open", palmZY:"up", separate : true},
+            {gt: "leap.start", accept:"2hands;open", palmZY:"up", 
+                separate : true},
             {disabling: [
-                    {gt: "leap.move", accept:"2hands;open", palmZY:"up", separate : true, iterative: true},
-                    {gt: "leap.end",  accept:"2hands", palmZY:"up", separate: false}
+                    {gt: "leap.move", accept:"2hands;open", palmZY:"up", 
+                        separate : true, iterative: true},
+                    {gt: "leap.end",  accept:"2hands", palmZY:"up", 
+                        separate: false}
                 ]}
         ]
-
-    };
-    
-    
+    }; 
     /*palm identifica la posizione della mano rispetto gli assi x ed y 
      * location: up, down, right, left, center 
      *          identifica in quale posizione si trova la mano rispetto al leap motion considerando solo altezza e left rigth
@@ -250,54 +142,95 @@ var container;
      * */
     var pullString = {
        sequence: [
-            {gt: "leap.start", accept:"close;location;palm", position:"up", palmXY:"up"},
+            {gt: "leap.start", accept:"close;location;palm", location:"up", 
+                palmXY:"up"},
             {disabling: [
-                    {gt: "leap.move",  accept:"close;palm", palmXY:"up", iterative: true},
-                    {gt: "leap.end", accept:"close;move;palm", palmXY:"up", move: "y", directionY: "updown", distance: 3}
+                    {gt: "leap.move",  accept:"close;palm", palmXY:"up", 
+                        iterative: true},
+                    {gt: "leap.end", accept:"close;move;palm", palmXY:"up", 
+                        move: "y", directionY: "updown", distance: 3}
                 ]}
         ]
-
     };
     
  /*Drawing a counterclockwise semicircle
   *  
   * 
   */
-    var semicircle = {
+    var semicircle1 = {
             sequence: [
-            {gt: "leap.start", tid: 1 , accept:"finger" , finger:"index"},
+            {gt: "leap.start", accept:"finger" , finger:"index"},
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"finger" , finger:"index", iterative: true},
-                    {gt: "leap.end", tid: 1,end:"1", accept:"finger;move", finger:"index", move: "y;x",  directionY:"downup", directionX:"leftright", distance:0}
+                    {gt: "leap.move", accept:"finger" , finger:"index", 
+                        iterative: true},
+                    {gt: "leap.end", end:"1", accept:"finger;move", 
+                        finger:"index", move: "y;x",  directionY:"downup", 
+                        directionX:"leftright", distance:0}
                 ]}, 
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"finger" , finger:"index", iterative: true},
-                    {gt: "leap.end", tid: 1, end:"2", accept:"finger;newmove", finger:"index", move: "y;x",  directionY:"updown", directionX:"leftright", distance:0}
+                    {gt: "leap.move", accept:"finger" , finger:"index", 
+                        iterative: true},
+                    {gt: "leap.end", end:"2", accept:"finger;newmove",                     //non è move ma new move
+                        finger:"index", move: "y;x",  directionY:"updown", 
+                        directionX:"leftright", distance:0}
                 ]},  
                    {disabling: [
-                        {gt: "leap.move", tid: 1, accept:"finger", finger:"index", iterative: true},
-                        {gt: "leap.end", tid: 1, end:"3", accept:"finger;semicircle", finger:"index", distance:0}
+                        {gt: "leap.move", accept:"finger", finger:"index", 
+                            iterative: true},
+                        {gt: "leap.end", end:"3", accept:"finger;semicircle", 
+                            finger:"index"}
                 ]}]
 
     };
     
     
+    var semicircle = {
+            sequence: [
+            {gt: "leap.start", accept:"finger" , finger:"index"},
+            {disabling: [
+                    {gt: "leap.move", accept:"finger" , finger:"index", 
+                        iterative: true},
+                    {gt: "leap.end", accept:"finger;move", 
+                        finger:"index", move: "y;x",  directionY:"downup", 
+                        directionX:"rightleft", distance:0}
+                ]}, 
+            {disabling: [
+                    {gt: "leap.move", accept:"finger" , finger:"index", 
+                        iterative: true},
+                    {gt: "leap.end", accept:"finger;newmove",                     //non è move ma new move
+                        finger:"index", move: "y;x",  directionY:"updown", 
+                        directionX:"rightleft", distance:0}
+                ]},  
+            {disabling: [
+                        {gt: "leap.move", accept:"finger", finger:"index", 
+                            iterative: true},
+                        {gt: "leap.end", accept:"finger;semicircle", 
+                            finger:"index"}
+                ]}]
+
+    };
+   
     var pressingButton = {
        sequence: [
-            {gt: "leap.start", tid: 1 , accept:"close;palm", palmXY:"normalDown"},
+            {gt: "leap.start", accept:"close;palm", palmXY:"normalDown"},
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"close;palm", palmXY:"normalDown", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"close;palm;move", palmXY:"normalDown", move:"y", directionY:"updown", distance:3}
+                    {gt: "leap.move", accept:"close;palm", palmXY:"normalDown", 
+                        iterative: true},
+                    {gt: "leap.end", accept:"close;palm;move", 
+                        palmXY:"normalDown", move:"y", directionY:"updown", 
+                        distance:3}
                 ]}
         ]
     };
 
     var thumbUp  = {
        sequence: [
-            {gt: "leap.start", tid: 1 , accept:"close;palm", palmXY:"up"},
+            {gt: "leap.start",  accept:"close;palm", palmXY:"up"},
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"close;palm", palmXY:"up", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"palm;finger", palmXY:"up", finger:"thumb"}
+                    {gt: "leap.move", accept:"close;palm", palmXY:"up", 
+                        iterative: true},
+                    {gt: "leap.end", accept:"palm;finger", palmXY:"up", 
+                        finger:"thumb"}
                 ]}
         ]
     };
@@ -321,20 +254,24 @@ var container;
     
     var fingerSnap  = {
        sequence: [
-            {gt: "leap.start", tid: 1 , accept:"fingerUnion", palmXY:"up", finger:"index;thumb", fingerUnion:"thumb-middle"},
+            {gt: "leap.start", tid: 1 , accept:"fingerUnion", 
+                finger:"index;thumb", fingerUnion:"thumb-middle"},
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"palm", palmXY:"up", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"palm", palmXY:"up", finger:"index"}
+                    {gt: "leap.move", tid: 1, accept:"palm", palmXY:"up", 
+                        iterative: true},
+                    {gt: "leap.end", tid: 1, accept:"finger;palm", palmXY:"up", 
+                        finger:"index;thumb"}
                 ]}
         ]
     };
     
     
+    
    var input = {
         choice: [
-            panx, 
+            //panx, 
             //fingerSnap, 
-            //pressingIndex, 
+            pressingIndex, 
             //wristclockwise, 
             //semicircle, 
             //thumbUp,
@@ -350,7 +287,7 @@ var container;
   
 
 
-
+/*
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
             panx,
             function(args) {                
@@ -396,16 +333,16 @@ var container;
                 var color = 0x65ff00;
                 hands.updateHand(args.token.hand,color);
    });
-    
+    */
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
             pressingIndex,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent = "gesture pressing a Buttom with the index Finger complete";
-                var color = 0x65ff00;
-                hands.updateHand(args.token.hand,color);
+                document.getElementById("gesture").textContent = "gesture pressing a Button with the index Finger complete";
    });
    
+  
+   /*
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
             handClap,
             function(args) {                
@@ -483,12 +420,12 @@ var container;
                 document.getElementById("gesture").textContent = "gesture wristclockwise complete";
                 var color = 0x65ff00;
                 hands.updateHand(args.token.hand,color);});           
-            
-    var controller = new Leap.Controller({enableGesture: true});
-    var lsensor = new djestit.LeapSensor(controller, hands, input, 200);
+            */
+    
+    var lsensor = new djestit.LeapSensor(input, 200);
 
  
-
+    
         
  
 
