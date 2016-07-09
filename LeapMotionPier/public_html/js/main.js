@@ -25,9 +25,9 @@ var config = {
 
 $(document).ready(function() {
 
-    /*var GestureAux = {
+    var GestureAux = {
         sequence: [
-            {gt: "leap.start", accept:"finger" , finger:"index"},
+            {gt: "leap.start", accept:"close" },
             {disabling: [
                     {gt: "leap.move",  accept:"finger", finger:"index", 
                         iterative: true},
@@ -37,7 +37,7 @@ $(document).ready(function() {
                 ]}
         ]
     };
-    */
+    
  
     /* il campo accept contiene tutti i campi che servono per accettare il ground di riferimento 
      * close specifica che la mano dev essere chiusa

@@ -58,7 +58,8 @@
                             break;
                     }  
                 //}
-            }
+            }else
+                this.gesture = null;
   
             this.pointable = leap.pointables;
             this.hand = leap.hands[0];
@@ -466,7 +467,136 @@
         return flag;
     };
     
+    var circle_ = function(circleGesture, type,clockwiseJ,clockwiseT){
+        var flag=false;
+        if (circleGesture!==null && circleGesture.gesture!==null  && circleGesture.type=== "circle"){
+            switch (type){
+                case "Move":
+                    flag = circleGesture.progress<1;
+                    break;
+                case "End":
+                    flag = (circleGesture.progress>=1);
+                    if (flag && (clockwiseJ!==null) && (clockwiseT!==null))                                          
+                        flag = clockwiseT === clockwiseJ;                                           
+                    break;
+                case "Start":
+                    flag = circleGesture.state==="start";  
+                    break;
+                default:
+                    flag = false;  
+                    break;
+            }
+            
+        }
+        return flag;
+    };
+
+    //TODO case x,y downup
+    var new_Move = function(move,directionX,directionY,directionZ){
+        var flag = true;
+        for(var j=0; j<move.length && flag; j++){
+            switch (move[j]){
+                case "x"://TODO
+                     console.log("new move asse x not defined");
+                    break;
+                case "y":                                                  
+                    switch(directionY){
+                        case "updown": //controlla se gli spostamenti dall'alto verso il basso
+                            /*sono in maggioranza rispetto agli spostamenti all'opposto*/
+                           flag = flag && (listUpDown.length>0) && (listDownUp.length>listUpDown.length); 
+                           //console.log("newmove " + flag + "posEnd " + listUpDown.length + "other downup" +listDownUp.length);
+                           break;
+                        case "downup"://TODO
+                           //flag = flag && listDownUp.length > (0) && (listUpDown.length ===0 ); 
+                           break;
+                        default://TODO
+                           //flag = flag && (listDownUp.length > (0) || (listUpDown.length >0 )); 
+                           break;
+
+                    }
+                    break;
+                case "z"://TODO
+                    console.log("new move asse z not defined");
+                    break;
+
+            }
+
+        }
+        return flag;
+    };   
     
+    var move_ = function(asse,distance2,tollerance2,directionX,directionY,directionZ){
+        var distance = 0;
+        var flag = true
+        if (distance !== null){
+            distance = distance2;
+            //console.log("distance" + distance);
+        }
+
+        var tollerance = 0.5;
+        if (tollerance2 !== null){
+            tollerance = tollerance2;
+        }
+
+        for(var j=0; j<asse.length && flag; j++){
+            switch (asse[j]){
+                case "x"://spostamento asse x
+                    switch(directionX){
+                        case "leftright":
+                            flag = thiss.listLeftRight.length > (distance) && (thiss.listRightLeft.length <(thiss.listLeftRight.length*tollerance)); 
+                             console.log("listRightLeft " + thiss.listRightLeft.length + " \n\
+                               listLeftRight " + thiss.listLeftRight.length + " flag " + flag + "distanc22e  "+ distance);
+                            break;
+                        case "rightleft":
+                            flag = thiss.listLeftRight.length < (thiss.listRightLeft.length * tollerance) && (thiss.listRightLeft.length > distance );                                                                  
+                           break;
+                        default:
+   //                                flag = flag && (thiss.listLeftRight.length >(distance) || (thiss.listRightLeft.length >distance ));                                                                  break;
+                            break;
+                    }
+
+                    break;
+                case "y":                                                                    
+                       // console.log("listDownUp " + thiss.listDownUp.length + " listUpDown " +thiss.listUpDown.length );
+                    switch(directionY){
+                        case "updown":
+                           flag = thiss.listDownUp.length < (thiss.listUpDown.length * tollerance) 
+                                   && (thiss.listUpDown.length >distance ); 
+                           break;
+                        case "downup":
+                           flag = thiss.listDownUp.length > (distance) 
+                                   && (thiss.listUpDown.length < (thiss.listDownUp.length *tollerance)); 
+                           break;
+                        default:
+                           //flag = flag && (thiss.listDownUp.length > (distance) || (thiss.listUpDown.length >distance )); 
+                           break;
+                    }
+                    break;
+                case "z":
+                    switch(directionZ){
+                        case "behindfront":
+                            console.log("listFrontBehin" + thiss.listFrontBehind.length + " listBehindFront "
+                                    + thiss.listBehindFront.length );
+                           flag =flag && thiss.listFrontBehind.length < (tollerance * thiss.listBehindFront.length) 
+                                   && (thiss.listBehindFront.length >distance ); 
+                           break;
+                        case "frontbehind":
+                           flag =  thiss.listFrontBehind.length > (distance) 
+                                   && (thiss.listBehindFront.length < (tollerance * thiss.listFrontBehind.length) ); 
+                           break;
+                        default:
+                           //flag = (thiss.listFrontBehind.length > (distance) || (thiss.listBehindFront.length >distance )); 
+                           break;
+
+                    }
+                break;
+            }
+
+        } 
+    };   
+                 
+                        
+                        
     var  acceptToken= function(accept,json,token,term) {
 
                     var flag = true;                  
@@ -526,189 +656,48 @@
                                 break;
                                 
                             case "circle":
-                                if (token.gesture  && token.gesture.type === "circle"){
-                                    switch (term.type){
-                                    case "Move":
-                                        //console.log("move circle" + token.gesture.progress);
-                                        flag = flag && token.gesture.progress<1;
-
-                                        break;
-                                    case "End":
-                                        if (json.clockwise!==null && token.clockwise!==null) {                                          
-                                            flag = flag && token.clockwise === json.clockwise;                                           
-                                        }
-                                        //console.log("end circle" + token.gesture.progress);
-                                        flag = flag  && (token.gesture.progress>=1);
-                                        break;
-                                    case "Start":
-                                      //console.log("start circle" + token.gesture.state);
-                                        flag = flag && token.gesture.state==="start";
-                                        if (json.finger && token.pointable) {
-                                            var index =0;
-                                                switch (json.finger){
-                                                    case "thumb":
-                                                        index =0;
-                                                        break;
-                                                    case "index":
-                                                        //console.log ( "indexFinger " + token.pointable[1].id +"idPont" +  token.gesture.pointableIds[0]);
-                                                        index =1;
-                                                        break;
-                                                        
-                                                
-                                                
-                                                    }
-                                                    
-                                                    flag = flag && token.gesture.pointableIds[0] === token.pointable[index].id ;
-                                            //flag = flag && token.gesture.pointableIds === 
-                                        }//console.log("start circle" + token.gesture.state + flag);
-                                        break;
-                                    
-                                    
-                                    }
-                                }else 
-                                    flag = false;
+                                flag = circle_(token.gesture, term.type,json.clockwise, token.clockwise);
                                 break;
                            
                             case "newmove":
-                                if (json.move){ //spostamento  
-                                    var asse = json.move.toString().split(";");
-                                    for(var j=0; j<asse.length; j++){
-                                        switch (asse[j]){
-                                                
-                                                case "x"://spostamento asse x
-                                                                                                                                            
-                                                    break;
-                                                 case "y":                                                  
-                                                     if (term.type==="End"){
-                                                         switch(json.directionY){
-                                                             case "updown":
-                                                                flag = flag && (listUpDown.length>0) && (listDownUp.length>listUpDown.length); 
-                                                                //console.log("newmove " + flag + "posEnd " + listUpDown.length + "other downup" +listDownUp.length);
-                                                                break;
-                                                             case "downup":
-                                                                //flag = flag && listDownUp.length > (0) && (listUpDown.length ===0 ); 
-                                                                break;
-                                                             default:
-                                                                //flag = flag && (listDownUp.length > (0) || (listUpDown.length >0 )); 
-                                                                break;
-                                                             
-                                                         }
-                                                                        
-                                                    }
-                                               
-                                                 
-                                                    break;
-                                                case "z":
-                                                    console.log("move asse z not defined");
-                                                    break;
-                                            
-                                        }
-                                        
-                                } 
-                            }   
+                                if (term.type==="End"){
+                                    if (json.move){ //spostamento  
+                                        var asse = json.move.toString().split(";");
+                                        flag = new_Move(asse,json.directionX,json.directionY,json.directionZ);
+                                    }
+                                    else{
+                                        console.log("nessuna asse specificata per newmove");
+                                        flag = true;
+                                    }
+                                }
+                                else{
+                                    flag = true;
+                                    console.log(" newmove work only with term type end");
+                                }
+
                                 break;
                             
                             case "move":
-                                if (json.move){ //spostamento  
-                                    var asse = json.move.toString().split(";");
-                                    var distance = 0;
-                                    if (json.distance !== null){
-                                        distance = json.distance;
-                                        //console.log("distance" + distance);
+                                if (term.type==="End"){
+                                    if (json.move){ //spostamento  
+                                        var asse = json.move.toString().split(";");
+                                        flag = move_ (asse,json.distance,json.tollerance,json.directionX,json.directionY,json.directionZ)
+                                    }else{
+                                        console.log("nessuna asse specificata per newmove");
+                                        flag = true;
                                     }
-                                    
-                                    var tollerance = 0.5;
-                                    if (json.tollerance !== null){
-                                        tollerance = json.tollerance;
-                                    }
-                                    
-                                    for(var j=0; j<asse.length; j++){
-                                        switch (asse[j]){
-                                                
-                                                case "x"://spostamento asse x
-                                                    if (term.type==="End"){
-
-                                                        switch(json.directionX){
-
-                                                             case "leftright":
-
-                                                                 flag = flag && thiss.listLeftRight.length > (distance) && (thiss.listRightLeft.length <(thiss.listLeftRight.length*tollerance)); 
-                                                                  console.log("listRightLeft " + thiss.listRightLeft.length + " \n\
-                                                                    listLeftRight " + thiss.listLeftRight.length + " flag " + flag + "distanc22e  "+ distance);
-
-                                                                 break;
-                                                             case "rightleft":
-                                                                 flag = flag && thiss.listLeftRight.length < (thiss.listRightLeft.length * tollerance) && (thiss.listRightLeft.length > distance );                                                                  
-                                                                break;
-                                                            default:
-                                                                flag = flag && (thiss.listLeftRight.length >(distance) || (thiss.listRightLeft.length >distance ));                                                                  break;
-
-                                                                 break;
-                                                             
-                                                        }
-                                                                        
-                                                    }
-                                                                                             
-                                                    break;
-                                                 case "y":                                                  
-                                                     if (term.type==="End"){
-                                                        console.log("listDownUp " + thiss.listDownUp.length + " listUpDown " +thiss.listUpDown.length );
-
-                                                         switch(json.directionY){
-                                                             case "updown":
-                                                                 
-                                                                flag = flag && thiss.listDownUp.length < (thiss.listUpDown.length * tollerance) 
-                                                                        && (thiss.listUpDown.length >distance ); 
-                                                                break;
-                                                             case "downup":
-                                                                flag =  flag && thiss.listDownUp.length > (distance) 
-                                                                        && (thiss.listUpDown.length < (thiss.listDownUp.length *tollerance)); 
-                                                                break;
-                                                             default:
-                                                                flag = flag && (thiss.listDownUp.length > (distance) || (thiss.listUpDown.length >distance )); 
-                                                                break;
-                                                             
-                                                         }
-                                                                        
-                                                    }
-                                                    break;
-                                                case "z":
-                                                    if (term.type==="End"){
-                                                    switch(json.directionZ){
-                                                             case "behindfront":
-                                                                 console.log("listFrontBehin" + thiss.listFrontBehind.length + " listBehindFront "
-                                                                         + thiss.listBehindFront.length );
-                                                                flag =flag && thiss.listFrontBehind.length < (tollerance * thiss.listBehindFront.length) 
-                                                                        && (thiss.listBehindFront.length >distance ); 
-                                                                break;
-                                                             case "frontbehind":
-                                                                flag = flag && thiss.listFrontBehind.length > (distance) 
-                                                                        && (thiss.listBehindFront.length < (tollerance * thiss.listFrontBehind.length) ); 
-                                                                break;
-                                                             default:
-                                                                flag = flag && (thiss.listFrontBehind.length > (distance) || (thiss.listBehindFront.length >distance )); 
-                                                                break;
-                                                             
-                                                         }
-                                                    
-                                                    
-                                                }
-                                                    break;
-                                            
-                                        }
-                                        
-                                } 
-                            }   
-                 
-                                    
-                        break;
-                            
+                                }else{
+                                    flag = true;
+                                    console.log(" newmove work only with term type end");
+                                }                      
+                                break;
+             
                         }
-                            
+                  
                         
                         
                 }
-                    if (flag){ // accettato il ground term allora aggiorna la lista di frame in leaps
+                    /*if (flag){ // accettato il ground term allora aggiorna la lista di frame in leaps
                         token.type2 = term.type;
                         if (json.gt === "leap.start"){
                             token.type = _LEAPSTART;
@@ -719,7 +708,7 @@
                      }else
                         if (token.sequence.length > 0){
                             token.sequence[token.id] = null;
-                        }
+                        }*/
                     return flag ;
                 
                
