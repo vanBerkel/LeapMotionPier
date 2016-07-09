@@ -527,7 +527,7 @@
     
     var move_ = function(asse,distance2,tollerance2,directionX,directionY,directionZ){
         var distance = 0;
-        var flag = true
+        var flag = true;
         if (distance !== null){
             distance = distance2;
             //console.log("distance" + distance);
@@ -545,7 +545,7 @@
                         case "leftright":
                             flag = thiss.listLeftRight.length > (distance) && (thiss.listRightLeft.length <(thiss.listLeftRight.length*tollerance)); 
                              console.log("listRightLeft " + thiss.listRightLeft.length + " \n\
-                               listLeftRight " + thiss.listLeftRight.length + " flag " + flag + "distanc22e  "+ distance);
+                               listLeftRight " + thiss.listLeftRight.length + " flag " + flag + "distanc22e  "+ distance + " " +thiss.listLeftRight.length*tollerance);
                             break;
                         case "rightleft":
                             flag = thiss.listLeftRight.length < (thiss.listRightLeft.length * tollerance) && (thiss.listRightLeft.length > distance );                                                                  
@@ -592,7 +592,8 @@
                 break;
             }
 
-        } 
+        }
+        return flag;
     };   
                  
                         
@@ -697,7 +698,7 @@
                         
                         
                 }
-                    /*if (flag){ // accettato il ground term allora aggiorna la lista di frame in leaps
+                    if (flag){ // accettato il ground term allora aggiorna la lista di frame in leaps
                         token.type2 = term.type;
                         if (json.gt === "leap.start"){
                             token.type = _LEAPSTART;
@@ -708,7 +709,7 @@
                      }else
                         if (token.sequence.length > 0){
                             token.sequence[token.id] = null;
-                        }*/
+                        }
                     return flag ;
                 
                

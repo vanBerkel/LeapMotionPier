@@ -25,15 +25,19 @@ var config = {
 
 $(document).ready(function() {
 
-    var GestureAux = {
+    var gestureAux = {
         sequence: [
             {gt: "leap.start", accept:"close" },
             {disabling: [
-                    {gt: "leap.move",  accept:"finger", finger:"index", 
+                    {gt: "leap.move",  accept:"close", 
                         iterative: true},
-                    {gt: "leap.end", accept:"move;finger", move:"z", 
-                        directionZ:"behindfront", finger:"index" , distance:2, 
-                        tollerance:0.3}
+                    {choice: [
+                        {gt: "leap.end", accept:"move;open", move:"x", 
+                        directionZ:"leftright",  distance:2, 
+                        tollerance:0.3}, 
+                        {gt: "leap.end", accept:"move;open", move:"x", 
+                        directionZ:"rightleft" , distance:2, 
+                        tollerance:0.3}]}
                 ]}
         ]
     };
@@ -50,7 +54,7 @@ $(document).ready(function() {
             {gt: "leap.start", tid: 1 , accept:"close"},
             {disabling: [
                     {gt: "leap.move", tid: 1, accept:"close", iterative: true},
-                    {gt: "leap.end", tid: 1,accept:"move;open", move: "x", distance:3, directionX:"leftright", tollerance:0.3}
+                    {gt: "leap.end", tid: 1,accept:"move", move: "x", distance:3, directionX:"leftright", tollerance:0.3}
                 ]}
         ]
     };
@@ -279,19 +283,19 @@ $(document).ready(function() {
         ]
     };
     
-    var gestures = { 
-       pany,
+    var gestures = { //gestureAux,
+       //pany,
        panx,
-       fingerSnap, 
-       pressingIndex, 
+       //fingerSnap, 
+       //pressingIndex, 
        //wristclockwise, 
-       semicircle, 
-       thumbUp,
-       pullString,
-       pressingButton,
-       circleClockwise,
-       handClap,
-       stretchHand
+       //semicircle, 
+       //thumbUp,
+       //pullString,
+       //pressingButton,
+       //circleClockwise,
+       //handClap,
+       //stretchHand
    };
     //gestures.GestureAux;
     var elenco = [];
