@@ -13,7 +13,7 @@ var lung = 0;
 
 var pauseOnGesture = false;
 
-var controllerOptions = {enableGestures: true};
+
 
 var config = {
     titleHeight: 0,
@@ -23,7 +23,15 @@ var config = {
 
 $(document).ready(function() {
 
-     
+    var gestureAux = {
+        sequence: [
+            {gt: "leap.start", accept:"open", location:""},
+            {disabling: [
+                    {gt: "leap.move", accept:"", iterative: true},
+                    {gt: "leap.end",accept:"", move: "", distance:3, directionX:"", tollerance:0.3}
+                ]}
+        ]
+    };
     
     /* il campo accept contiene tutti i campi che servono per accettare il ground di riferimento 
      * close specifica che la mano dev essere chiusa
@@ -269,17 +277,18 @@ $(document).ready(function() {
     
    var input = {
         choice: [
-            panx, 
-            fingerSnap, 
-            pressingIndex, 
-            wristclockwise, 
-            semicircle, 
-            thumbUp,
-            pullString,
-            pressingButton,
-            circleClockwise,
-            handClap,
-            stretchHand
+            gestureAux,
+            //panx, 
+            //fingerSnap, 
+            //pressingIndex, 
+            //wristclockwise, 
+            //semicircle, 
+            //thumbUp,
+            //pullString,
+            //pressingButton,
+            //circleClockwise,
+            //handClap,
+            //stretchHand
         ],
         iterative: true
     };

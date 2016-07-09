@@ -108,177 +108,110 @@
     LeapToken.prototype = new djestit.Token();
     djestit.LeapToken = LeapToken;
 
-   
-   
-    var LeapStart = function() {
-        this.init();
-        this.type = "Start";
-        this._accepts = function() {
-            return true;
-        };
-    };
-    LeapStart.prototype = new djestit.GroundTerm();
-    djestit.LeapStart = LeapStart;
+ 
 
-    var LeapMove = function() {
-        this.init();
-        this.type = "Move";
-        this._accepts = function() {
-            return true;
-        };
+   var locationsAccept = function (location1, location2){
+       var flag = false; 
+       var locationAccept = function (location){
+            switch(location){
+                case "up": // la mano si trova in alto rispetto al Leap
+                    flag = token.palmPosition[1] > _positionUpDown;
+                    break;
+                case "down": //la mano si trova in altezza vicino al Leap
+                    flag = token.palmPosition[1] < _positionDownUp;
+                    break;
+                case "right": // la mano si trova a destra rispetto al Leap
+                    flag = token.palmPosition[0] > _positionRight;
+                    break;
+                case "left": // la mano si trova a sinistra rispetto al Leap
+                    flag = token.palmPosition[0] < _positionLeft;
+                    break;
+                case "center": /*la mano si trova tra la posizione 
+                                sx(left) e la posizione dx(right)*/
+                    flag = (token.palmPosition[0] >(_positionLeft) 
+                            && token.palmPosition[0] <(_positionRight)) ;
+                    break;
+             }
+        };   
+        if (location2!==null)
+            flag = locationAccept(location2);
+        if ((location1!==null) && (flag))
+            flag = locationAccept(location1);
+        return flag;
     };
-    LeapMove.prototype = new djestit.GroundTerm();
-    djestit.LeapMove = LeapMove;
 
-    var LeapEnd = function() {
-        this.init();
-        this.type = "End";
-        this._accepts = function() {
-  
-            return true;
-        };
-    };
-    LeapEnd.prototype = new djestit.GroundTerm();
-    djestit.LeapEnd = LeapEnd;
+   var thiss= this;
+    var listRightLeft = [];
+    var listLeftRight = [];
+    var listUpDown = [];
+    var listDownUp = [];
+    var listFrontBehind = [];
+    var listBehindFront =[];
+    var moveToken;
+    var highestPosition;
+    
+    
+    
+    var updateListToken = function(token){
+         
+        if ((token.sequence.leaps[token.id]!==null) && (token.sequence.leaps[token.id].length>0)&& (token.sequence.first[token.id]>=0)) {    
+                thiss.moveToken = token.sequence.leaps[token.id];
+                var aux = token.sequence.leaps[token.id][token.sequence.first[token.id]]; //token.sequence.first -> prima posizione occupata
+                var start = token.sequence.leaps[token.id][token.sequence.first[token.id]];
 
-/* 
- * 
- * @param {type} capacity -> numero massimo di frame per una gesture
- * @returns {djestit_leap_L2.LeapStateSequence}
- */
-    var LeapStateSequence = function(capacity) {
-        this.init(capacity);
-        this.leaps = [];
-        this.l_index = [];//identifica la prima posizione libera
-        this.first = []; //identifica dove il primo frame e' stato accettato 
-        //this.frames = []; //identifica tutti i frame da start fino all ultimo end
-        this.push = function(token) {
-            this._push(token);
-            switch (token.type) {           
-                case _LEAPSTART:
-                    this.leaps[token.id] = [];
-                    this.l_index[token.id] = 0;
-                    this.first[token.id] = 0; //la posizione viene stabilita durante le fasi di gesture
-                   // this.frames[token.id] = [];
-                case _LEAPMOVE: 
-                case _LEAPEND:
-                    if (this.leaps[token.id].length < this.capacity) {
-                        this.leaps[token.id].push(token);
-                    } else {
-                       console.log("error!!you use too frames");
+
+                var posEnd = [0,0,0,0];//right,left,up,down
+                var highest;
+                var y_high = aux.palmPosition[1];
+                var palmEnd = [];
+                for(var t=0 ;t<  thiss.moveToken.length; t++){
+                    if ( thiss.moveToken[t].type2 === "End"){
+                        posEnd[0]=( thiss.listRightLeft.length);
+                        posEnd[1]=( thiss.listLeftRight.length);
+                        posEnd[2]=( thiss.listUpDown.length);
+                        posEnd[3]=( thiss.listDownUp.length);
+                        palmEnd.push(t);
+                        //console.log(palmEnd);
+                     }
+
+                    //punto piu alto
+                    if ( thiss.moveToken[t].palmPosition[1]>y_high){
+                        highestPosition = t;
+                        y_high =  thiss.moveToken[t].palmPosition[1];                   
+                        //console.log("compare " + "y " + y_high + " x " + moveToken[t].palmPosition[0] + " index" + t);
                     }
 
-                    break;
-
-            }
-            
-            
-        };
-
-/*ritorna i dati del token leap in un determinato istante*/
-   /*    this.getById = function(delay, id) {
-            var pos = 0;
-            if(this.leaps[id].length < this.capacity){
-                pos = this.l_index[id] - delay -1;
-            }else{
-                pos =(this.l_index[id] - delay - 1  + this.capacity) % this.capacity;
-            }
-            return this.leaps[id] [pos];
-        };
-     */
-        
-    };
-
-
-    LeapStateSequence.prototype = new djestit.StateSequence();
-
-    djestit.LeapStateSequence = LeapStateSequence;
-
-    djestit.leapExpression = function(json) {
-        console.log("leapExpression");
-        var term;
-        if (json.gt) {
-            switch (json.gt) {
-                case "leap.start":
-                    term =  new djestit.LeapStart();
-                    break;
-                case "leap.move":
-                    term = new djestit.LeapMove();
-                    break;
-                case "leap.end":
-                    term = new djestit.LeapEnd();
-                    break;
-            }
-            if (json.accept){
-               
-                term.accepts = function(token) {
-                    if (token.type !== _LEAPEND){
-                    var flag = true;
-                    var accept = json.accept.toString().split(";");
-                    if (term.type ==="End"){
-                        var listRightLeft = [];
-                                var listLeftRight = [];
-                                var listUpDown = [];
-                                var listDownUp = [];
-                                var listFrontBehind = [];
-                                var listBehindFront =[];
-                   
-                     if ((token.sequence.leaps[token.id]!==null) && (token.sequence.leaps[token.id].length>0)&& (token.sequence.first[token.id]>=0)) {    
-                                var moveToken = token.sequence.leaps[token.id];
-                                var aux = token.sequence.leaps[token.id][token.sequence.first[token.id]]; //token.sequence.first -> prima posizione occupata
-                                var start = token.sequence.leaps[token.id][token.sequence.first[token.id]];
-                                
-                               
-                                var posEnd = [0,0,0,0];//right,left,up,down
-                                var highest;
-                                var y_high = aux.palmPosition[1];
-                                var palmEnd = [];
-                                for(var t=0 ;t< moveToken.length; t++){
-                                    if (moveToken[t].type2 === "End"){
-                                        posEnd[0]=(listRightLeft.length);
-                                        posEnd[1]=(listLeftRight.length);
-                                        posEnd[2]=(listUpDown.length);
-                                        posEnd[3]=(listDownUp.length);
-                                        palmEnd.push(t);
-                                        //console.log(palmEnd);
-                                     }
-                                    
-                                    //punto piu alto
-                                    if (moveToken[t].palmPosition[1]>y_high){
-                                        highest = t;
-                                        y_high = moveToken[t].palmPosition[1];                   
-                                        //console.log("compare " + "y " + y_high + " x " + moveToken[t].palmPosition[0] + " index" + t);
-                                    }
-                   
-                                    if (moveToken[t].palmPosition[1]>aux.palmPosition[1]+_longDistance){
-                                        listDownUp.push(moveToken[t]);
-                                    }else{
-                                        if (moveToken[t].palmPosition[1]<aux.palmPosition[1]-_longDistance){
-                                            listUpDown.push(moveToken[t]);
-                                        }
-                                    }
-                                    if (moveToken[t].palmPosition[0]<aux.palmPosition[0]-_longDistance){
-                                        listRightLeft.push(moveToken[t]);
-                                    }else{
-                                        if (moveToken[t].palmPosition[0]>aux.palmPosition[0]+_longDistance){
-                                            listLeftRight.push(moveToken[t]);
-                                        }
-                                    }
-
-                                    
-                                    if (moveToken[t].palmPosition[2]<aux.palmPosition[2]-_longDistanceZ){
-                                        listBehindFront.push(moveToken[t]);
-                                    }else{
-                                        if (moveToken[t].palmPosition[2]>aux.palmPosition[2]+_longDistanceZ){
-                                            listFrontBehind.push(moveToken[t]);
-                                        }
-                                    }                                   
-                                    aux = moveToken[t];                                            
-                                }
-                            }
+                    if ( thiss.moveToken[t].palmPosition[1]>aux.palmPosition[1]+_longDistance){
+                         listDownUp.push(thiss.moveToken[t]);
+                    }else{
+                        if ( thiss.moveToken[t].palmPosition[1]<aux.palmPosition[1]-_longDistance){
+                             listUpDown.push( thiss.moveToken[t]);
                         }
-                                            
-                   
+                    }
+                    if ( thiss.moveToken[t].palmPosition[0]<aux.palmPosition[0]-_longDistance){
+                         listRightLeft.push( thiss.moveToken[t]);
+                    }else{
+                        if ( thiss.moveToken[t].palmPosition[0]>aux.palmPosition[0]+_longDistance){
+                           listLeftRight.push( thiss.moveToken[t]);
+                        }
+                    }
+
+
+                    if ( thiss.moveToken[t].palmPosition[2]<aux.palmPosition[2]-_longDistanceZ){
+                        listBehindFront.push( thiss.moveToken[t]);
+                    }else{
+                        if ( thiss.moveToken[t].palmPosition[2]>aux.palmPosition[2]+_longDistanceZ){
+                            listFrontBehind.push( thiss.moveToken[t]);
+                        }
+                    }                                   
+                    aux =  thiss.moveToken[t];                                            
+                }
+            }
+          
+    }
+   
+   var  acceptToken= function(accept,json,token,term) {
+                    var flag = true;                  
                     for(var i=0; i<accept.length; i++){
                         
                         
@@ -287,53 +220,23 @@
                                 flag =  flag && token.close;
 
                                 break;
-                                
-                          /*  case "take": // which data takes updown
-                                switch(json.take){
-                                    case "updown": //remove the listDownUp
-                                        listDownUp.splice(0,listDownUp.length-1);
-                                        break;
-                                    case "downup": //remove the listUpDown
-                                        listUpDown.splice(0,listUpDown.length-1);
-                                        break;
-                                    
-                                }
-                                break*/
-                                    
-                        /*...*/                                
-                        case "location":// identifica la posizione della mano rispetto a 6 posizioni  
+                                              
+                        case "location": // identifica la posizione della mano rispetto a 6 posizioni  
                             /*le posizioni possono essere "up,down,left,right,center" 
                             * possono essere accoppiate tra di loro ad esempio:
                             * location === "up;left" --> la mano si trova in alto a sx
                             * !! certi accoppiamenti non hanno senso ad esempio:
                             * location === "up;down" --> il flag risultera' sempre falso perchè la
                             * mano non si può trovare sia in alto(up) che in basso (down)*/
-                            var location = json.location.toString().split(";");
-                            if (location.length>2)
-                                flag = false;
-                            else{
-                                for(var h=0; h<location.length; h++){
-                                    switch(location[h]){
-                                        case "up": // la mano si trova in alto rispetto al Leap
-                                            flag = flag && token.palmPosition[1] > _positionUpDown;
-                                            break;
-                                        case "down": //la mano si trova in altezza vicino al Leap
-                                            flag = flag && token.palmPosition[1] < _positionDownUp;
-                                            break;
-                                        case "right": // la mano si trova a destra rispetto al Leap
-                                            flag = flag && token.palmPosition[0] > _positionRight;
-                                            break;
-                                        case "left": // la mano si trova a sinistra rispetto al Leap
-                                            flag = flag && token.palmPosition[0] < _positionLeft;
-                                            break;
-                                        case "center": /*la mano si trova tra la posizione 
-                                                        sx(left) e la posizione dx(right)*/
-                                            flag = flag && (token.palmPosition[0] >(_positionLeft) 
-                                                    && token.palmPosition[0] <(_positionRight)) ;
-                                            break;
-                                     }
-                                }
+                            if (json.location){
+                                location = json.location.toString().split(";");
+                                flag = locationsAccept(location[0],location[1]);
                             }
+                                else{
+                                    flag = true;
+                                    alert("you forgot the variable location to define");
+                                }
+                            
                             break;
                             /*...*/
                             case "2hands":
@@ -344,28 +247,7 @@
                                     flag = false;
                                 break;
                             
-                           /* case "samePosition": /// same position range 30+-
-                                var samePosition = json.samePosition.toString().split(";");
-                                if (start!==null) 
-                                    for(var k=0; k<samePosition.length;k++){
-                                        switch(samePosition[k]){
-                                            case "y":
-                                                //console.log("startPosition " + start.palmPosition[1] + "> token.palmPosition" + (token.palmPosition[1]-30) + "<tokenpalmposition" +token.palmPosition[1]+30);
-                                                //flag = flag && start.palmPosition[1]> token.palmPosition[1]-30 && start.palmPosition[1]<token.palmPosition[1]+30;
-                                                break;
-                                            case "x":
-                                                console.log("samePosition x not defined");
-                                                break;
-                                            case "z":
-                                                console.log("samePosition z not defined");
-                                                break;                                      
-                                        }
-
-
-
-                                    }
-                                
-                                break;*/
+                         
                             case "open":
                                 flag = flag && token.open;
                                 break;
@@ -380,25 +262,25 @@
                                                                  
                                     
                                     
-                                    var Y1 = moveToken[highest].palmPosition[1];
+                                    var Y1 = moveToken[highestPosition].palmPosition[1];
                                     var sY = moveToken[0].palmPosition[1];
                                     
                                     var distance = Y1 - sY;
-                                    var X1 = moveToken[highest].palmPosition[0];
+                                    var X1 = moveToken[highestPosition].palmPosition[0];
                                     var sX = moveToken[0].palmPosition[0];
                                     
                                     
                                     var m1 = ((Y1 - sY) / (X1 - sX));
                                    // var q = Y1 - (X1 * m1);
 
-                                    var y = ((moveToken[Math.round(highest/2)].palmPosition[0] - sX) * m1) + sY;
+                                    var y = ((moveToken[Math.round(highestPosition/2)].palmPosition[0] - sX) * m1) + sY;
 
                                    /* console.log("distance between y and y highest/2" + y + " " + 
                                             moveToken[Math.round(highest/2)].palmPosition[1]
                                             + "start x " + sX + "end x" + X1 + "point x" + moveToken[Math.round(highest/2)].palmPosition[0] 
                                             + "final x" + moveToken[moveToken.length-1].palmPosition[0] + "distance " + distance
                                             + "distance 20 " + (distance*0.18 ));*/
-                                    var flag2 = (distance * 0.18) < (moveToken[Math.round(highest/2)].palmPosition[1] -y);
+                                    var flag2 = (distance * 0.18) < (moveToken[Math.round(highestPosition/2)].palmPosition[1] -y);
                                     
                                     sY = moveToken[moveToken.length-1].palmPosition[1];
                                     
@@ -407,9 +289,9 @@
                                     sX = moveToken[moveToken.length-1].palmPosition[0];                               
                                     m1 = ((sY-Y1) / (sX-X1));
 
-                                    y = ((moveToken[Math.round((moveToken.length-1-highest)/2)].palmPosition[0] - X1) * m1) + Y1;
+                                    y = ((moveToken[Math.round((moveToken.length-1-highestPosition)/2)].palmPosition[0] - X1) * m1) + Y1;
                                         
-                                    var flag3 = (distance * 0.18) < (moveToken[Math.round((moveToken.length-1-highest)/2)].palmPosition[1] -y);
+                                    var flag3 = (distance * 0.18) < (moveToken[Math.round((moveToken.length-1-highestPosition)/2)].palmPosition[1] -y);
                                     
                                     
                                     flag = flag && (flag3 || flag2);
@@ -765,13 +647,128 @@
                             token.sequence[token.id] = null;
                         }
                     return flag ;
-                }
-                return false;
-                };     
-            }
-            return term;
-        }   
+                
+               
+    };     
+            
+            
+           
         
+   
+   
+   
+   
+   
+    var LeapStart = function(accept,exp) {
+        this.init();
+        this.type = "Start";
+        this._accepts = function(token) {
+            return acceptToken(accept,exp,token,this); 
+            return true;
+        };
+    };
+    LeapStart.prototype = new djestit.GroundTerm();
+    djestit.LeapStart = LeapStart;
+
+    var LeapMove = function(accept,exp) {
+        this.init();
+        this.type = "Move";
+        this._accepts = function(token) {
+            return acceptToken(accept,exp,token,this);             
+            return true;
+
+        };
+    };
+    LeapMove.prototype = new djestit.GroundTerm();
+    djestit.LeapMove = LeapMove;
+
+    var LeapEnd = function(accept,exp) {
+        this.init();
+        this.type = "End";
+        this._accepts = function(token) {
+            updateListToken(token);
+            return acceptToken(accept,exp,token,this); 
+
+        };
+    };
+    LeapEnd.prototype = new djestit.GroundTerm();
+    djestit.LeapEnd = LeapEnd;
+
+/* 
+ * 
+ * @param {type} capacity -> numero massimo di frame per una gesture
+ * @returns {djestit_leap_L2.LeapStateSequence}
+ */
+    var LeapStateSequence = function(capacity) {
+        this.init(capacity);
+        this.leaps = [];
+        this.l_index = [];//identifica la prima posizione libera
+        this.first = []; //identifica dove il primo frame e' stato accettato 
+        //this.frames = []; //identifica tutti i frame da start fino all ultimo end
+        this.push = function(token) {
+            this._push(token);
+            switch (token.type) {           
+                case _LEAPSTART:
+                    this.leaps[token.id] = [];
+                    this.l_index[token.id] = 0;
+                    this.first[token.id] = 0; //la posizione viene stabilita durante le fasi di gesture
+                   // this.frames[token.id] = [];
+                case _LEAPMOVE: 
+                case _LEAPEND:
+                    if (this.leaps[token.id].length < this.capacity) {
+                        this.leaps[token.id].push(token);
+                    } else {
+                       //alert("hai impiegato troppo tempo ad eseguire un gesto");
+                        console.log("error!!you use too frames");
+                    }
+
+                    break;
+
+            }
+            
+            
+        };
+
+/*ritorna i dati del token leap in un determinato istante*/
+   /*    this.getById = function(delay, id) {
+            var pos = 0;
+            if(this.leaps[id].length < this.capacity){
+                pos = this.l_index[id] - delay -1;
+            }else{
+                pos =(this.l_index[id] - delay - 1  + this.capacity) % this.capacity;
+            }
+            return this.leaps[id] [pos];
+        };
+     */
+        
+    };
+
+
+    LeapStateSequence.prototype = new djestit.StateSequence();
+
+    djestit.LeapStateSequence = LeapStateSequence;
+
+    djestit.leapExpression = function(json) {
+        console.log("leapExpression");
+        var term;
+ 
+        if (json.gt) {
+             var accept=[] ;
+            if (json.accept)
+                accept = json.accept.toString().split(";");
+            switch (json.gt) {
+                case "leap.start":
+                    term =  new djestit.LeapStart(accept, json);
+                    break;
+                case "leap.move":
+                    term = new djestit.LeapMove(accept,json);
+                    break;
+                case "leap.end":
+                    term = new djestit.LeapEnd(accept,json);
+                    break;
+            }
+        }   
+        return term;
     };
     
 
@@ -783,14 +780,13 @@
 
 
 
-/*tiene in memoria l'elenco delle gesture che sono state definite e trasforma
- * le informazioni ricevute dal frame leap contenente le informazioni sulle mani,
- * in token che ne rappresentano il movimento compiuto ora
- * element rappresenta il controller del leap
- * hands rappresenta la mano da disegnare sullo schermo
- * root rappresenta la lista dei groundTerm
- * 
- */
+    /*tiene in memoria l'elenco delle gesture che sono state definite e trasforma
+    * le informazioni ricevute dal frame leap contenente le informazioni sulle mani,
+    * in token che ne rappresentano il movimento compiuto.
+    * @param {type} root   rappresenta la lista dei groundTerm
+    * @param {type} capacity numero massimo di frame per concludere un gesto
+    * @returns {undefined}
+    */
     var LeapSensor = function(root, capacity) {
         if (root instanceof djestit.Term) {
             this.root = root; //attributo term, rappresenta la lista
@@ -798,6 +794,7 @@
             console.log("expressionroot");
             this.root = djestit.expression(root); // analizza root il file json
         }
+                var self = this;
        this.sequence = new LeapStateSequence(capacity);
         
        /*? leapToEvent eventToLeap differenza?? */
@@ -808,8 +805,6 @@
         this.leapToEvent[0] = -1;
         
         this.tokenToLeap = -1;
-        
-        var self = this;
 
         this.generateToken = function(type, leap) {
             var token = new LeapToken(leap, type);
@@ -853,31 +848,36 @@
         
         
 
-/* raiseLeapEvent
- * @param {type} event
- * @param {type} name example _LEAPSTART
- * @returns {undefined}
- * 
- */
-        this.handsU = {
+        /* oggetto per aggiornare il colore della mano 
+         */
+        this.handsUpdate = {
             scale: 1.3,
             materialOptions: {
                     color: new THREE.Color(_colorNew)
             }
         };
+        
+        
+        
+        
+        /* raiseLeapEvent
+         * passa il token al fire, e controlla lo stato del root
+         * cioe' se le espressioni sono state concluse
+        * @param {type} token 
+        * @returns {undefined}
+        */
         this._raiseLeapEventHand = function(token) {
                     self.root.fire(token);
-                    console.log("state -> " + self.root.state + "  self ->" + self.root.lookahead(token) + "token.id" + token.id);
+                    console.log("state -> " + self.root.state + "  this ->" + self.root.lookahead(token) + "token.id" + token.id);
                     if (self.root.state === djestit.COMPLETE){
-                        
-                        this.handsU.materialOptions.color.set(_colorAccept);
+                        self.handsUpdate.materialOptions.color.set(_colorAccept);
                         setTimeout(function(s){
                              s.materialOptions.color.set(_colorDefault); 
-                         }, 3000,this.handsU);
+                         }, 3000,self.handsUpdate);
                         console.log(self.root);
                         // la gesture e' stata rilevata  viene resetato il valore del primo id della prossima gesture
 
-                        this.tokenToLeap = -1; 
+                        self.tokenToLeap = -1; 
                         
                         self.root.reset();
                         
@@ -893,16 +893,25 @@
                 
         };
               
-        this.handME = function (handMesh){
+       
+        /*
+         * viene invocato quando per la prima volta la mano 
+         * viene acquisita dal leap motion. La mano viene visualizzata 
+         * sullo schermo, viene creato il token e chiamata la funzione 
+         * _raiseLeapEventHand(token) per verificare il token.
+         * @param {type} frame acquisito dal leap motion
+         * @param {type} name tipo di token _LEAPSTART,_LEAPMOVE,_LEAPEND
+         * @returns {undefined}
+         */
+        this._raiseLeapEventStart = function (frame,name){
+            //aggiornamento della schermata           
+            controller.use('riggedHand', self.handsUpdate);
+            controller.on('riggedHand.meshAdded', function (handMesh){
          //   handMesh.castShadow = true;
            // handMesh.depthTest = true;
             handMesh.material.opacity = 1;
           
-        };
-        this._raiseLeapEventStart = function (frame,name){
-            //aggiornamento della schermata           
-            controller.use('riggedHand', this.handsU);
-            controller.on('riggedHand.meshAdded', this.handME );
+            });
 
             var riggedHand = controller.plugins.riggedHand;
             var camera = riggedHand.camera;
@@ -910,26 +919,48 @@
             camera.lookAt(new THREE.Vector3(0,0,0));
 
             var token =  self.generateToken(name, frame);
-            this._raiseLeapEventHand(token);
+            self._raiseLeapEventHand(token);
         };
-            
+        
+        /*
+         * viene invocato quando la mano continua ad essere acquisita 
+         * dal leap motion.  Viene creato il token e chiamata la funzione 
+         * _raiseLeapEventHand(token) per verificare il token.
+         * @param {type} frame acquisito dal leap motion
+         * @param {type} name tipo di token _LEAPSTART,_LEAPMOVE,_LEAPEND
+         * @returns {undefined}
+         */
         this._raiseLeapEventMove= function(frame,name){
             var token =  self.generateToken(name, frame);
             this._raiseLeapEventHand(token);
         };
-        
+         
+        /*
+         * viene invocato quando la mano continua ad essere acquisita 
+         * dal leap motion.  Viene chiamata la funzione per generare il token,
+         * ed eliminare le vecchie acquisizioni.
+         * @param {type} frame acquisito dal leap motion
+         * @param {type} name tipo di token _LEAPSTART,_LEAPMOVE,_LEAPEND
+         * @returns {undefined}
+         */
         this._raiseLeapEventEnd = function(frame,name){
-           var token =  self.generateToken(name, frame);
+           self.generateToken(name, frame);
         }; 
-       /* this.element.on('connect', function(){
-            setInterval(function(){
-            
-            }, 200);
-        });       */ 
-        controller = new Leap.Controller({enableGesture: true});
-        controller.streaming();    
-        var previousFrame = null;
-        controller.on('frame', function(frame){
+
+       
+        //  
+        //
+            // variabile di supporto per verificare il vecchio frame 
+        var previousFrame = null; 
+        
+        /*
+         * controlla che i frame siano validi e a 
+         * seconda della presenza della mano chiama  
+         * l'evento assocciato
+         * @param {type} frame acquisito dal leap motion
+         * @returns {undefined}
+         */
+        this._raiseLeapEvent = function(frame){
             if (frame.valid){
             //primo frame da analizzare
                 if ((frame.hands.length>0)&&(previousFrame ===null)){
@@ -940,17 +971,24 @@
                     if (frame.hands.length>0){
                         self._raiseLeapEventMove(frame,_LEAPMOVE);
                     }
-                        else {// ultimo frame
+                        else {// la mano non viene rilevata
                             previousFrame=null;
-                            //self._raiseLeapEventEnd(frame,_LEAPEND);
                             self._raiseLeapEventEnd(frame,_LEAPEND);
                         }
             }
-        });     
+        };
         
- 
-        
-       
+        /* parte di acquisizione dati dal Leap Motion*/
+               //crea un nuovo Leap.controller
+        controller = new Leap.Controller({enableGesture: true});
+            /*aggiunge la funzione _raiseLeapEvent per l'evento frame
+             * il quale viene ripetuto ciclicamente*/
+            controller.streaming();  
+        controller.on('frame', this._raiseLeapEvent);          
+            /* connette il controller oggetto con il Leap Motion WebSocket
+             * se la connessione avviene i dati dal Leap motion possono essere
+             * prelevati
+             * */
         controller.connect();
 
     };
