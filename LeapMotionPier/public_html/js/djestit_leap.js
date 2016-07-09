@@ -93,11 +93,6 @@
                 this.open = true;
             else 
                 this.open = false;
-  
-   
-  
-  
-  
             this.palmPosition = this.hand.palmPosition;
     
         }
@@ -598,7 +593,7 @@
                  
                         
                         
-    var  acceptToken= function(accept,json,token,term) {
+    var  acceptToken = function(accept,json,token,term) {
 
                     var flag = true;                  
                     for(var i=0; (i<accept.length && flag); i++){

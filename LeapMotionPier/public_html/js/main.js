@@ -25,7 +25,7 @@ var config = {
 
 $(document).ready(function() {
 
-    var gestureAux = {
+    var gestureAux= {
         sequence: [
             {gt: "leap.start", accept:"close" },
             {disabling: [
@@ -49,25 +49,33 @@ $(document).ready(function() {
      * 
      * 
      * */
-    var panx = {
+    var pan= {
         sequence: [
-            {gt: "leap.start", tid: 1 , accept:"close"},
+            {gt: "leap.start", accept:"close" },
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"close", iterative: true},
-                    {gt: "leap.end", tid: 1,accept:"move", move: "x", distance:3, directionX:"leftright", tollerance:0.3}
+                    {gt: "leap.move",  accept:"close", 
+                        iterative: true},
+                    {choice: [
+                        {gt: "leap.end", accept:"move;open", move:"x", 
+                        directionX:"leftright",  distance:2, 
+                        tollerance:0.3}, 
+                        {gt: "leap.end", accept:"move;open", move:"x", 
+                        directionX:"rightleft" , distance:2, 
+                        tollerance:0.3},
+                        {gt: "leap.end", accept:"open;move", move: "y", 
+                            directionY:"updown", distance:2, tollerance:0.3}, 
+                        {gt: "leap.end", accept:"open;move", move: "y", 
+                            directionY:"downup", distance:2, tollerance:0.3},
+                        {gt: "leap.end", accept:"open;move", move: "z", 
+                            directionZ:"behindfront", distance:2, tollerance:0.3}, 
+                        {gt: "leap.end", accept:"open;move", move: "z", 
+                            directionZ:"frontbehind", distance:2, tollerance:0.3}]}
                 ]}
         ]
     };
-    var pany = {
-        sequence: [
-            {gt: "leap.start", tid: 1 , accept:"close" },
-            {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"close", iterative: true},
-                    {gt: "leap.end", tid: 1,accept:"open;move", move: "y", directionY:"downup"}
-                ]}
-        ]
+    
 
-    };
+
    
                                                       // console.log("pointable " +token.hand.fingers[0].extended);
 
@@ -283,9 +291,9 @@ $(document).ready(function() {
         ]
     };
     
-    var gestures = { //gestureAux,
-       //pany,
-       panx,
+    var gestures = {// gestureAux,
+       pan,
+       //panx,
        //fingerSnap, 
        //pressingIndex, 
        //wristclockwise, 
@@ -324,11 +332,8 @@ $(document).ready(function() {
                     lsensor.colorComplete();
                     var s="";
                     switch (item){
-                        case gestures.pany:
-                            s+= "gesture pan Y complete ";
-                            break;
-                        case gestures.panx:
-                            s += "gesture pan X complete ";
+                        case gestures.pan:
+                            s+= "gesture pan complete ";
                             break;
                         case gestures.fingerSnap:
                             s += "gesture finger Snap complete";
