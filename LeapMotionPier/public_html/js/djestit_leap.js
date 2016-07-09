@@ -208,7 +208,7 @@
             var locationAccept = function (location){
                  console.log("posizione" + position[0]);
                 flag=false;
-                switch(location.toString()){
+                switch(location){
                     case "up": // la mano si trova in alto rispetto al Leap
                         flag =position[1] > _positionUp;
                         break;
@@ -237,7 +237,7 @@
                             * fosse definita quindi il flag viene impostato a true
                             * visualizzando un messaggio di warning*/
                         flag = true; 
-                        console.log("name not valid for the location " + location.toString());
+                        console.log("name not valid for the location " + location);
                         break;
                 }
                 return flag;
@@ -292,7 +292,8 @@
         
         return flag && (flag3 || flag2);
     };    
-           
+    
+ 
     var palm_XY = function(palmXY,palm,typeHand){
         var flag = true;
         switch (palmXY){ //controlla il palmo della mano considerando solo gli assi X e Y
@@ -300,35 +301,35 @@
                 /* a seconda della mano di riferimento (destra, sinistra) il controllo per capire in che posizione 
                  * si trova il palmo della mano cambia
                  */    
-                if (typeHand=== _rightHand){
-                    flag = ((palm)> (5*Math.PI/6) ||((palm) <(-5*Math.PI/6)));
+                if (typeHand.toString() === _rightHand){
+                    flag = ((palm> (5*Math.PI/6)) ||(palm <(-5*Math.PI/6)));
                 }
                 else{
-                    flag = ((palm)< (Math.PI/12) ||(palm) > (-Math.PI/12));
+                    flag = ((palm< (Math.PI/12)) ||(palm > (-Math.PI/12)));
                 }
                  break;
             case "normalDown"://palmo della mano rivolta verso il basso
-                if (typeHand=== _rightHand){
-                    flag = ((palm)< (Math.PI/12) ||((palm) > (-Math.PI/12)));
+                if (typeHand.toString() === _rightHand){
+                    flag = ((palm< (Math.PI/12)) ||(palm > (-Math.PI/12)));
                 }
                 else{
-                    flag = ((palm)> (5*Math.PI/6) ||((palm) <(-5*Math.PI/6)));
+                    flag = ((palm> (5*Math.PI/6)) ||(palm <(-5*Math.PI/6)));
                 }
                 break;
             case "up":
-                if (typeHand === _leftHand){
-                    flag = ((palm)> Math.PI/3) &&((palm) < (2*Math.PI/3));
+                if (typeHand.toString() === _leftHand){
+                    flag = ((palm> (Math.PI/3)) &&(palm < (2*Math.PI/3)));
                 }
                 else{
-                    flag = ((palm)<(-Math.PI/3)) &&((palm) > (-2*Math.PI/3));                                         
+                    flag = ((palm<(-Math.PI/3)) &&(palm > (-2*Math.PI/3)));                                         
                 }
                 break;
             case "down":
-                if (typeHand === _rightHand){
-                    flag = ((palm)> Math.PI/3) &&((palm) < (2*Math.PI/3));
+                if (typeHand.toString() === _rightHand){
+                    flag = ((palm> Math.PI/3) &&(palm < (2*Math.PI/3)));
                 }
                 else{
-                    flag = ((palm)<(-Math.PI/3)) &&((palm)) > (-2*Math.PI/3));                                         
+                    flag = ((palm<(-Math.PI/3)) &&(palm> (-2*Math.PI/3)));                                         
                 }
 
 
@@ -337,6 +338,8 @@
         return flag;
         
     }; 
+    
+    
     var palm_ZY = function (palmZY,palm,typeHand){    
         var flag=true;
         switch (palmZY){
@@ -347,7 +350,7 @@
                     //console.log("normalDown PalmZY ancora da definire");
                 break;
             case "up":
-                if (typeHand=== _leftHand){
+                if (typeHand.toString()=== _leftHand){
                     flag = ((palm)> Math.PI/3) &&((palm) < (2*Math.PI/3));
                 }
                 else{
@@ -356,7 +359,7 @@
                 }
                 break;
             case "down":
-                 if (typeHand === _rightHand){
+                 if (typeHand.toString() === _rightHand){
                     flag =  ((palm)> Math.PI/3) &&((palm) < (2*Math.PI/3));
                 }
                 else{
@@ -372,7 +375,7 @@
     var palm_XZ = function (palmXZ,palm,typeHand){
         var flag = true;
         switch (palmXZ){
-            case "normalUp":
+            case "normalU\n\p":
                   //  console.log("normalUp PalmXZ ancora da definire");
                 break;
             case "normalDown":
@@ -389,7 +392,7 @@
         return flag;
     };
     
-    var acceptToken= function(accept,json,token,term) {
+    var  acceptToken= function(accept,json,token,term) {
 
                     var flag = true;                  
                     for(var i=0; (i<accept.length && flag); i++){
@@ -432,9 +435,9 @@
                                         
                                 break;
                             case "palm": //controlla in che posizione si trova il palmo della mano
-                                flag = palm_XY(json.palmXY,token.hand.roll(),token.hand.type)
-                                        && palm_ZY(json.palmXZ,token.hand.pinch(),token.hand.type)
-                                        && palm_XZ(json.palmXZ,token.hand.yaw(),token.hand.type);                      
+                                flag =  palm_XZ(json.palmXZ,token.hand.yaw(),token.hand.type) &&
+                                        palm_ZY(json.palmZY,token.hand.pitch(),token.hand.type) &&
+                                        palm_XY (json.palmXY,token.hand.roll(),token.hand.type);
                                 break;
 
                             case "finger":
@@ -767,6 +770,8 @@
                        //alert("hai impiegato troppo tempo ad eseguire un gesto");
                         console.log("error!!you use too time");
                         thiss.continueLeap = false;
+                        
+                        
                     }
 
                     break;
@@ -1004,20 +1009,23 @@
         this._raiseLeapEvent = function(frame){
             if ((frame.valid)&&(thiss.continueLeap)){
             //primo frame da analizzare
-                if ((frame.hands.length>0)&&(previousFrame ===null)){
+                if ((frame.hands.length>0)&&(thiss.previousFrame ===null)){
                     console.log("indice");
                     self._raiseLeapEventStart(frame,_LEAPSTART);
-                    previousFrame=frame;
+                    thiss.previousFrame=frame;
                 }
                 else //secondo frame da analizzare
                     if (frame.hands.length>0){
                         self._raiseLeapEventMove(frame,_LEAPMOVE);
                     }
                         else {// la mano non viene rilevata
-                            previousFrame=null;
+                            thiss.previousFrame=null;
                             self._raiseLeapEventEnd(frame,_LEAPEND);
                         }
             }else{
+                 thiss.previousFrame=null;
+                self._raiseLeapEventEnd(frame,_LEAPEND);
+                thiss.continueLeap = true;
                 console.log("indice222");
             }
         };
