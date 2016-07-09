@@ -1,6 +1,8 @@
 
 
 
+/* global gestures */
+
 var index=0;
 var previousFrame;
 
@@ -23,16 +25,20 @@ var config = {
 
 $(document).ready(function() {
 
-    var gestureAux = {
+    var GestureAux = {
         sequence: [
-            {gt: "leap.start", accept:"location", location:"up;centeX"},
+            {gt: "leap.start", accept:"finger" , finger:"index"},
             {disabling: [
-                    {gt: "leap.move", accept:"", iterative: true},
-                    {gt: "leap.end",accept:"", move: "", distance:3, directionX:"", tollerance:0.3}
+                    {gt: "leap.move",  accept:"finger", finger:"index", 
+                        iterative: true},
+                    {gt: "leap.end", accept:"move;finger", move:"z", 
+                        directionZ:"behindfront", finger:"index" , distance:2, 
+                        tollerance:0.3}
                 ]}
         ]
     };
     
+ 
     /* il campo accept contiene tutti i campi che servono per accettare il ground di riferimento 
      * close specifica che la mano dev essere chiusa
      * open specifica che la mano dev essere aperta
@@ -198,21 +204,21 @@ $(document).ready(function() {
             {disabling: [
                     {gt: "leap.move", accept:"finger" , finger:"index", 
                         iterative: true},
-                    {gt: "leap.end", accept:"finger;move", 
+                    {gt: "leap.end", end:1, accept:"finger;move", 
                         finger:"index", move: "y;x",  directionY:"downup", 
                         directionX:"rightleft", distance:0}
                 ]}, 
             {disabling: [
                     {gt: "leap.move", accept:"finger" , finger:"index", 
                         iterative: true},
-                    {gt: "leap.end", accept:"finger;newmove",                     //non è move ma new move
+                    {gt: "leap.end", end:2, accept:"finger;newmove",                     //non è move ma new move
                         finger:"index", move: "y;x",  directionY:"updown", 
                         directionX:"rightleft", distance:0}
                 ]},  
             {disabling: [
                         {gt: "leap.move", accept:"finger", finger:"index", 
                             iterative: true},
-                        {gt: "leap.end", accept:"finger;semicircle", 
+                        {gt: "leap.end", end:3, accept:"finger;semicircle", 
                             finger:"index"}
                 ]}]
 
@@ -259,7 +265,7 @@ $(document).ready(function() {
         ]
 
     };
-    
+   
     var fingerSnap  = {
        sequence: [
             {gt: "leap.start", tid: 1 , accept:"fingerUnion", 
@@ -273,11 +279,35 @@ $(document).ready(function() {
         ]
     };
     
+    var gestures = {GestureAux, 
+       panx,
+       fingerSnap, 
+       pressingIndex, 
+       wristclockwise, 
+       semicircle, 
+       thumbUp,
+       pullString,
+       pressingButton,
+       circleClockwise,
+       handClap,
+       stretchHand
+   };
+    //gestures.GestureAux;
+    var elenco = [];
+ 
+    /*for (var name in gestures) {
+     elenco.push(gestures[name]);
+   } */
     
+    elenco.push(gestures.GestureAux);
+    elenco.push(gestures.panx);
+    //elenco.push(gestures.fingerSnap);
+   
+
     
    var input = {
-        choice: [
-            gestureAux,
+        choice: elenco
+            //gestureAux,
             //panx, 
             //fingerSnap, 
             //pressingIndex, 
@@ -289,19 +319,76 @@ $(document).ready(function() {
             //circleClockwise,
             //handClap,
             //stretchHand
-        ],
+        ,
         iterative: true
     };
-   
-  
+    
+    //json expression
+    jsonStart = ":has(:root > .gt:val(\"leap.start\"))";
+    jsonEnd = ":has(:root > .gt:val(\"leap.end\"))";
+    
+    //change the color when the gesture is complete
+    elenco.forEach(function (item){
+            djestit.onComplete(jsonEnd, item,
+                function() {   
+                    lsensor.colorComplete();
+                    var s="";
+                    switch (item){
+                        case gestures.GestureAux:
+                            s+= "pressing index ";
+                            break;
+                        case gestures.panx:
+                            s += "gesto pan X complete ";
+                            break;
+                        case gestures.fingerSnap:
+                            s += "pressing index";
+                            break;
+                        case gestures.pressingIndex: 
+                            s+= "pressing index2";
+                            break;   
+                       case gestures.wristclockwise:
+                            s+= "pressing index";
+                            break;
+                        case gestures.thumbUp:
+                             s += "pressing index2";
+                            break;    
+                        case gestures.pullString:
+                             s += "pressing index2";
+                            break;  
+                        case gestures.pressingButton:
+                            s += "pressing index2";
+                            break;    
+                        case gestures.handClap:
+                             s += "pressing index2";
+                            break;
+                        case gestures.circleClockwise:
+                             s += "pressing index2";
+                            break;
+                        case gestures.stretchHand:
+                             s += "pressing index2";
+                            break;
+                        default:
+                            s +="il gesto non e' stato aggiunto all'elenco";
+                    }
+                    //document.getElementById("gesture").="<br>";
+                    document.getElementById("gesture").textContent +=s;
+                });  
+    });
+    
 
+    
 
+    
+    
+    
+/*
 
+            
     djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
             panx,
             function(args) {                
                 console.log("action end ");
-                document.getElementById("gesture").textContent += "</br>gesto pan X complete";
+                document.getElementById("gesture").textContent += "</br>";
                
          });
          
@@ -390,21 +477,26 @@ $(document).ready(function() {
             });
             
             
-            /*
+            
     djestit.onComplete( ":has(:root > .end:val(\"1\"))",
             semicircle,
             function(args) {                
-                var color = 0x65ffff;
-                hands.updateHand(args.token.hand,color);}); 
+               // var color = 0x65ffff;
+                //hands.updateHand(args.token.hand,color);
+                //
+                document.getElementById("gesture").textContent += "</br>gesture semicircle complete"
+            }); 
             
             
     djestit.onComplete( ":has(:root > .end:val(\"2\"))",
             semicircle,
             function(args) {                
-               
-                var color = 0x65ffaa;
-                hands.updateHand(args.token.hand,color);});    
-            */
+                 document.getElementById("gesture").textContent += "</br>gesture semicircle complete2";
+
+              //  var color = 0x65ffaa;
+               // hands.updateHand(args.token.hand,color);
+              });    
+            
       djestit.onComplete( ":has(:root > .end:val(\"3\"))",
             semicircle,
             function(args) {                
@@ -424,9 +516,12 @@ $(document).ready(function() {
      * l-ultimo identifica il massimo numero di frame che puo contenere per rilevare un gesto
      */
     
-    var lsensor = new djestit.LeapSensor(input, 200);
+    var lsensor = new djestit.LeapSensor(input, 500);
 
+
+    
  
+    //lsensor.changeColorHand(0x65ff00);
     
         
  

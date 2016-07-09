@@ -108,31 +108,36 @@
     LeapToken.prototype = new djestit.Token();
     djestit.LeapToken = LeapToken;
 
- 
+    var continueLeap = true;
 
-   
- 
-    var listRightLeft = [];
-    var listLeftRight = [];
-    var listUpDown = [];
-    var listDownUp = [];
-    var listFrontBehind = [];
-    var listBehindFront =[];
+    var listRightLeft ;
+    var listLeftRight  ;
+    var listUpDown;
+    var listDownUp;
+    var listFrontBehind;
+    var listBehindFront;
     var moveToken;
     var highestPosition;
+    var start; //frame per gestire il semicerchio
     
+               // variabile di supporto per verificare il vecchio frame 
+    var previousFrame = null; 
     
     
     var updateListToken = function(token){
          
         if ((token.sequence.leaps[token.id]!==null) && (token.sequence.leaps[token.id].length>0)&& (token.sequence.first[token.id]>=0)) {    
+                thiss.listRightLeft = [];
+                thiss.listLeftRight = [];
+                thiss.listUpDown = [];
+                thiss.listDownUp = [];
+                thiss.listFrontBehind = [];
+                thiss.listBehindFront =[];
                 thiss.moveToken = token.sequence.leaps[token.id];
                 var aux = token.sequence.leaps[token.id][token.sequence.first[token.id]]; //token.sequence.first -> prima posizione occupata
-                var start = token.sequence.leaps[token.id][token.sequence.first[token.id]];
+                start= token.sequence.leaps[token.id][token.sequence.first[token.id]];
 
-
-                var posEnd = [0,0,0,0];//right,left,up,down
-                var highest;
+                var posEnd = [0,0,0,0];//right,left,up,down 
                 var y_high = aux.palmPosition[1];
                 var palmEnd = [];
                 for(var t=0 ;t<  thiss.moveToken.length; t++){
@@ -142,7 +147,6 @@
                         posEnd[2]=( thiss.listUpDown.length);
                         posEnd[3]=( thiss.listDownUp.length);
                         palmEnd.push(t);
-                        //console.log(palmEnd);
                      }
 
                     //punto piu alto
@@ -153,36 +157,32 @@
                     }
 
                     if ( thiss.moveToken[t].palmPosition[1]>aux.palmPosition[1]+_longDistance){
-                         listDownUp.push(thiss.moveToken[t]);
+                         thiss.listDownUp.push(thiss.moveToken[t]);
                     }else{
                         if ( thiss.moveToken[t].palmPosition[1]<aux.palmPosition[1]-_longDistance){
-                             listUpDown.push( thiss.moveToken[t]);
+                             thiss.listUpDown.push( thiss.moveToken[t]);
                         }
                     }
                     if ( thiss.moveToken[t].palmPosition[0]<aux.palmPosition[0]-_longDistance){
-                         listRightLeft.push( thiss.moveToken[t]);
+                         thiss.listRightLeft.push( thiss.moveToken[t]);
                     }else{
                         if ( thiss.moveToken[t].palmPosition[0]>aux.palmPosition[0]+_longDistance){
-                           listLeftRight.push( thiss.moveToken[t]);
+                           thiss.listLeftRight.push( thiss.moveToken[t]);
                         }
                     }
-
-
                     if ( thiss.moveToken[t].palmPosition[2]<aux.palmPosition[2]-_longDistanceZ){
-                        listBehindFront.push( thiss.moveToken[t]);
+                        thiss.listBehindFront.push( thiss.moveToken[t]);
                     }else{
                         if ( thiss.moveToken[t].palmPosition[2]>aux.palmPosition[2]+_longDistanceZ){
-                            listFrontBehind.push( thiss.moveToken[t]);
+                            thiss.listFrontBehind.push( thiss.moveToken[t]);
                         }
                     }                                   
                     aux =  thiss.moveToken[t];                                            
                 }
             }
           
-    }
+    };
    
-    
-    
     /* identifica la posizione della mano in 9 posizioni rispetto
      * allo schermo 2D (considera solo altezza e larghezza).
      * l'etichette possono essere "up,down,left,right,centerV,centerH"
@@ -246,50 +246,52 @@
                  flag = locationAccept(location2);
              return flag;
         };
-        
-        
+   
     var semicircle = function(){
         var flag=true;
-         
+         var flag2,flag3;
+        if ((start!==null)){  
             flag = flag && listDownUp.length > 2 //&& listRightLeft.length > (listDownUp.length) 
-                && listUpDown.length >2; 
+                    && listUpDown.length >2; 
 
-        var Y1 = moveToken[highestPosition].palmPosition[1];
-        var sY = moveToken[0].palmPosition[1];
+            var Y1 = moveToken[highestPosition].palmPosition[1];
+            var sY = moveToken[0].palmPosition[1];
 
-        var distance = Y1 - sY;
-        var X1 = moveToken[highestPosition].palmPosition[0];
-        var sX = moveToken[0].palmPosition[0];
-
-
-        var m1 = ((Y1 - sY) / (X1 - sX));
-       // var q = Y1 - (X1 * m1);
-
-        var y = ((moveToken[Math.round(highestPosition/2)].palmPosition[0] - sX) * m1) + sY;
-
-       /* console.log("distance between y and y highest/2" + y + " " + 
-                moveToken[Math.round(highest/2)].palmPosition[1]
-                + "start x " + sX + "end x" + X1 + "point x" + moveToken[Math.round(highest/2)].palmPosition[0] 
-                + "final x" + moveToken[moveToken.length-1].palmPosition[0] + "distance " + distance
-                + "distance 20 " + (distance*0.18 ));*/
-        var flag2 = (distance * 0.18) < (moveToken[Math.round(highestPosition/2)].palmPosition[1] -y);
-
-        sY = moveToken[moveToken.length-1].palmPosition[1];
-
-        distance = Y1 - sY;
-
-        sX = moveToken[moveToken.length-1].palmPosition[0];                               
-        m1 = ((sY-Y1) / (sX-X1));
-
-        y = ((moveToken[Math.round((moveToken.length-1-highestPosition)/2)].palmPosition[0] - X1) * m1) + Y1;
-
-        var flag3 = (distance * 0.18) < (moveToken[Math.round((moveToken.length-1-highestPosition)/2)].palmPosition[1] -y);
+            var distance = Y1 - sY;
+            var X1 = moveToken[highestPosition].palmPosition[0];
+            var sX = moveToken[0].palmPosition[0];
 
 
+            var m1 = ((Y1 - sY) / (X1 - sX));
+           // var q = Y1 - (X1 * m1);
+
+            var y = ((moveToken[Math.round(highestPosition/2)].palmPosition[0] - sX) * m1) + sY;
+
+           /* console.log("distance between y and y highest/2" + y + " " + 
+                    moveToken[Math.round(highest/2)].palmPosition[1]
+                    + "start x " + sX + "end x" + X1 + "point x" + moveToken[Math.round(highest/2)].palmPosition[0] 
+                    + "final x" + moveToken[moveToken.length-1].palmPosition[0] + "distance " + distance
+                    + "distance 20 " + (distance*0.18 ));*/
+
+            flag2 = (distance * 0.18) < (moveToken[Math.round(highestPosition/2)].palmPosition[1] -y);
+
+            sY = moveToken[moveToken.length-1].palmPosition[1];
+
+            distance = Y1 - sY;
+
+            sX = moveToken[moveToken.length-1].palmPosition[0];                               
+            m1 = ((sY-Y1) / (sX-X1));
+
+            y = ((moveToken[Math.round((moveToken.length-1-highestPosition)/2)].palmPosition[0] - X1) * m1) + Y1;
+
+            flag3 = (distance * 0.18) < (moveToken[Math.round((moveToken.length-1-highestPosition)/2)].palmPosition[1] -y);
+
+        }
+        
         return flag && (flag3 || flag2);
     };    
         
-   var  acceptToken= function(accept,json,token,term) {
+    var  acceptToken= function(accept,json,token,term) {
 
                     var flag = true;                  
                     for(var i=0; (i<accept.length && flag); i++){
@@ -322,10 +324,8 @@
                                 flag = flag && token.open;
                                 break;
 
-               
-               
                             case "semicircle":
-                                if (term.type="End"){
+                                if (term.type==="End"){
                                     flag = semicircle();
                                 }else{
                                         flag = true;
@@ -597,16 +597,16 @@
 
                                                              case "leftright":
 
-                                                                 flag = flag && listLeftRight.length > (distance) && (listRightLeft.length <(listLeftRight.length*tollerance)); 
-                                                                  console.log("listRightLeft " + listRightLeft.length + " \n\
-                                                                    listLeftRight " + listLeftRight.length + " flag " + flag + "distanc22e  "+ distance);
+                                                                 flag = flag && thiss.listLeftRight.length > (distance) && (thiss.listRightLeft.length <(thiss.listLeftRight.length*tollerance)); 
+                                                                  console.log("listRightLeft " + thiss.listRightLeft.length + " \n\
+                                                                    listLeftRight " + thiss.listLeftRight.length + " flag " + flag + "distanc22e  "+ distance);
 
                                                                  break;
                                                              case "rightleft":
-                                                                 flag = flag && listLeftRight.length < (listRightLeft.length * tollerance) && (listRightLeft.length > distance );                                                                  
+                                                                 flag = flag && thiss.listLeftRight.length < (thiss.listRightLeft.length * tollerance) && (thiss.listRightLeft.length > distance );                                                                  
                                                                 break;
                                                             default:
-                                                                flag = flag && (listLeftRight.length >(distance) || (listRightLeft.length >distance ));                                                                  break;
+                                                                flag = flag && (thiss.listLeftRight.length >(distance) || (thiss.listRightLeft.length >distance ));                                                                  break;
 
                                                                  break;
                                                              
@@ -617,18 +617,20 @@
                                                     break;
                                                  case "y":                                                  
                                                      if (term.type==="End"){
-                                                        console.log("listDownUp " + listDownUp.length + " listUpDown " +listUpDown.length );
+                                                        console.log("listDownUp " + thiss.listDownUp.length + " listUpDown " +thiss.listUpDown.length );
 
                                                          switch(json.directionY){
                                                              case "updown":
                                                                  
-                                                                flag = flag && listDownUp.length < (listUpDown.length * tollerance) && (listUpDown.length >distance ); 
+                                                                flag = flag && thiss.listDownUp.length < (thiss.listUpDown.length * tollerance) 
+                                                                        && (thiss.listUpDown.length >distance ); 
                                                                 break;
                                                              case "downup":
-                                                                flag = flag && listDownUp.length > (distance) && (listUpDown.length < (listDownUp.length *tollerance)); 
+                                                                flag =  flag && thiss.listDownUp.length > (distance) 
+                                                                        && (thiss.listUpDown.length < (thiss.listDownUp.length *tollerance)); 
                                                                 break;
                                                              default:
-                                                                flag = flag && (listDownUp.length > (distance) || (listUpDown.length >distance )); 
+                                                                flag = flag && (thiss.listDownUp.length > (distance) || (thiss.listUpDown.length >distance )); 
                                                                 break;
                                                              
                                                          }
@@ -639,15 +641,17 @@
                                                     if (term.type==="End"){
                                                     switch(json.directionZ){
                                                              case "behindfront":
-                                                                 console.log("listFrontBehin" + listFrontBehind.length + " listBehindFront "
-                                                                         + listBehindFront.length );
-                                                                flag = flag && listFrontBehind.length < (tollerance * listBehindFront.length) && (listBehindFront.length >distance ); 
+                                                                 console.log("listFrontBehin" + thiss.listFrontBehind.length + " listBehindFront "
+                                                                         + thiss.listBehindFront.length );
+                                                                flag =flag && thiss.listFrontBehind.length < (tollerance * thiss.listBehindFront.length) 
+                                                                        && (thiss.listBehindFront.length >distance ); 
                                                                 break;
                                                              case "frontbehind":
-                                                                flag = flag && listFrontBehind.length > (distance) && (listBehindFront.length < (tollerance * listFrontBehind.length) ); 
+                                                                flag = flag && thiss.listFrontBehind.length > (distance) 
+                                                                        && (thiss.listBehindFront.length < (tollerance * thiss.listFrontBehind.length) ); 
                                                                 break;
                                                              default:
-                                                                flag = flag && (listFrontBehind.length > (distance) || (listBehindFront.length >distance )); 
+                                                                flag = flag && (thiss.listFrontBehind.length > (distance) || (thiss.listBehindFront.length >distance )); 
                                                                 break;
                                                              
                                                          }
@@ -685,21 +689,12 @@
                 
                
     };     
-            
-            
-           
-        
-   
-   
-   
-   
-   
+
     var LeapStart = function(accept,exp) {
         this.init();
         this.type = "Start";
         this._accepts = function(token) {
             return acceptToken(accept,exp,token,this); 
-            
         };
     };
     LeapStart.prototype = new djestit.GroundTerm();
@@ -708,10 +703,8 @@
     var LeapMove = function(accept,exp) {
         this.init();
         this.type = "Move";
-        this._accepts = function(token) {
+        this._accepts = function(token){
             return acceptToken(accept,exp,token,this);             
-           
-
         };
     };
     LeapMove.prototype = new djestit.GroundTerm();
@@ -720,11 +713,13 @@
     var LeapEnd = function(accept,exp) {
         this.init();
         this.type = "End";
+
         this._accepts = function(token) {
             updateListToken(token);
             return acceptToken(accept,exp,token,this); 
 
         };
+  
     };
     LeapEnd.prototype = new djestit.GroundTerm();
     djestit.LeapEnd = LeapEnd;
@@ -746,9 +741,11 @@
                 case _LEAPSTART:
                     this.leaps[token.id] = [];
                     this.l_index[token.id] = 0;
-                    this.first[token.id] = 0; //la posizione viene stabilita durante le fasi di gesture
+                    this.first[token.id] = 0; 
+                ////la posizione viene stabilita durante le fasi di gesture
                    // this.frames[token.id] = [];
                 case _LEAPMOVE: 
+                
                 case _LEAPEND:
                     if (this.leaps[token.id].length < this.capacity) {
                         this.leaps[token.id].push(token);
@@ -807,8 +804,8 @@
     };
     
 
+  
     
-
     djestit.registerGroundTerm("leap.start", djestit.leapExpression);
     djestit.registerGroundTerm("leap.move", djestit.leapExpression);
     djestit.registerGroundTerm("leap.end", djestit.leapExpression);
@@ -836,7 +833,7 @@
         this.leapToEvent = [];
         this.eventToLeap = [];
         
-        // we do not use zero as touch identifier
+        
         this.leapToEvent[0] = -1;
         
         this.tokenToLeap = -1;
@@ -878,23 +875,36 @@
             this.leapToEvent.push(id);
             return this.leapToEvent.length - 1;
         };
-        
-    
-        
-        
 
         /* oggetto per aggiornare il colore della mano 
          */
         this.handsUpdate = {
-            scale: 1.1,
+            scale: 1.0,
             materialOptions: {
                     color: new THREE.Color(_colorNew)
             }
         };
         
+        this.changeColorHand = function(_color) {
+             self.handsUpdate.materialOptions.color.set(_color);
+        };
         
         
-        
+        this.colorComplete = function(){
+            self.changeColorHand(_colorAccept);
+            thiss.continueLeap = false;
+             self.root.reset();
+            setTimeout(function(){
+                thiss.continueLeap = true;
+                self.changeColorHand(_colorDefault);
+               
+             }, 3000,self.handsUpdate);
+         
+                self.tokenToLeap = -1;             // la gesture e' stata rilevata  viene resetato il valore del primo id della prossima gesture
+
+                      
+        };
+
         /* raiseLeapEvent
          * passa il token al fire, e controlla lo stato del root
          * cioe' se le espressioni sono state concluse
@@ -903,29 +913,12 @@
         */
         this._raiseLeapEventHand = function(token) {
                     self.root.fire(token);
-                    console.log("state -> " + self.root.state + "  this ->" + self.root.lookahead(token) + "token.id" + token.id);
-                    if (self.root.state === djestit.COMPLETE){
-                        self.handsUpdate.materialOptions.color.set(_colorAccept);
-                        setTimeout(function(s){
-                             s.materialOptions.color.set(_colorDefault); 
-                         }, 3000,self.handsUpdate);
-                     //   console.log(self.root);
-                        // la gesture e' stata rilevata  viene resetato il valore del primo id della prossima gesture
-
-                        self.tokenToLeap = -1; 
-                        
-                        self.root.reset();
-                        
-                    }
+                    //console.log("state -> " + self.root.state + "  this ->" + self.root.lookahead(token) + "token.id" + token.id);
                    if ((self.root.state === djestit.ERROR) || (!self.root.lookahead(token))){
-                         
-                        console.log("gesto non completato");
                         self.root.reset();
                        
                     }
-                        
-                        
-                
+   
         };
               
        
@@ -982,11 +975,8 @@
            self.generateToken(name, frame);
         }; 
 
-       
-        //  
-        //
-            // variabile di supporto per verificare il vecchio frame 
-        var previousFrame = null; 
+
+ 
         
         /*
          * controlla che i frame siano validi e a 
@@ -996,9 +986,10 @@
          * @returns {undefined}
          */
         this._raiseLeapEvent = function(frame){
-            if (frame.valid){
+            if ((frame.valid)&&(continueLeap)){
             //primo frame da analizzare
                 if ((frame.hands.length>0)&&(previousFrame ===null)){
+                    console.log("indice");
                     self._raiseLeapEventStart(frame,_LEAPSTART);
                     previousFrame=frame;
                 }

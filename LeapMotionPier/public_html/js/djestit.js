@@ -666,7 +666,7 @@
         if (json.iterative && json.iterative === true) {
             var it = exp;
             exp = new Iterative(it);
-                                                        console.log("iterative");
+                                                        //console.log("iterative");
 
         }
 
@@ -694,9 +694,12 @@
     
     var _attachHandler = function(selector, expression, event, f){
         var  selection = djestit._select(selector, expression);
+        console.log(selection.length + " selection" );
+        
         for(var i = 0; i<selection.length; i++){
+            
             selection[i][event] = f;
-
+            console.log(selection[i].valueOf());
         }
          
         
