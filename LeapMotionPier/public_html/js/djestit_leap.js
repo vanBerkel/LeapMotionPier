@@ -293,8 +293,7 @@
         return flag && (flag3 || flag2);
     };    
     
- 
-    var palm_XY = function(palmXY,palm,typeHand){
+     var palm_XY = function(palmXY,palm,typeHand){
         var flag = true;
         switch (palmXY){ //controlla il palmo della mano considerando solo gli assi X e Y
             case "normalUp"://palmo della mano rivolta verso l'alto
@@ -338,8 +337,8 @@
         return flag;
         
     }; 
-    
-    
+   
+    //TODO implements normalUp, normalDown
     var palm_ZY = function (palmZY,palm,typeHand){    
         var flag=true;
         switch (palmZY){
@@ -372,6 +371,8 @@
         }   
         return flag;
     }; 
+    
+    //TODO implements palm_XZ
     var palm_XZ = function (palmXZ,palm,typeHand){
         var flag = true;
         switch (palmXZ){
@@ -391,6 +392,80 @@
         }  
         return flag;
     };
+    
+    
+    var fingersExtended= function(fingers,fingersToken){
+        
+        var fingerE = [false,false,false,false,false];
+
+        for(var f=0;f<fingers.length;f++){
+            switch (fingers[f]){
+                case "thumb":
+                    fingerE[0]=true; 
+                    break;
+                case "index":
+                    fingerE[1]=true; 
+                    break;
+                case "middle":
+                    fingerE[2]=true; 
+                    break;
+                case "ring":
+                    fingerE[3]=true;
+                    break;
+                case "middle":
+                    fingerE[4]=true; 
+                    break;
+            }
+        }
+
+        return (fingersToken[0].extended===fingerE[0])  
+                && (fingersToken[1].extended === fingerE[1])
+                && (fingersToken[2].extended === fingerE[2]) 
+                && (fingersToken[3].extended === fingerE[3]) 
+                && (fingersToken[4].extended === fingerE[4]);
+ //   console.log("flag extended" + flag + "index" + fingerE[1] + "token" +token.hand.fingers[1].extended);
+
+    };
+    
+    //TODO implements all
+    var fingers_Union = function(fingersUnion, fingersToken){
+        var flag = true;
+      /*  for(var f=0;f<fingersUnion.length && flag;f++){
+            switch (fingersUnion[f].toString()){
+                case "thumb-middle":
+                   console.log("pointable " +fingersToken[0].extended);
+                    flag = (Math.abs(fingersToken[0].distal.nextJoint[2]) > (Math.abs(fingersToken[2].distal.nextJoint[2]) - 10)) 
+                            && (Math.abs(fingersToken[0].distal.nextJoint[2]) < (Math.abs(fingersToken[2].distal.nextJoint[2]) +10))
+                            && (fingersToken[0].distal.nextJoint[1] > (fingersToken[2].distal.nextJoint[1] - 12)) 
+                            && (fingersToken[0].distal.nextJoint[1]<(fingersToken[2].distal.nextJoint[1] +12))
+                            );
+                    console.log("thumb" + fingersToken[0].carpPosition +  " \n\
+                            middle" + fingersToken[2].carpPosition
+                                + " thumb dip position\n\
+                        " + fingersToken[0].dipPosition + " middle \n\
+                        " + fingersToken[2].dipPosition 
+                                + "mcp position\n\
+                        " + fingersToken[0].mcpPosition + " \n\
+                        middle" + fingersToken[2].mcpPosition + 
+                                    "distal thumb " + fingersToken[0].distal.nextJoint + " \n\
+                    middle distal" + fingersToken[2].distal.nextJoint + 
+                                    " flag " + flag);
+                    break;
+                case "thumb-index":
+                    //fingerE[1]=true; 
+                    break;
+                
+                case "thumb-ring":
+                    //fingerE[1]=true; 
+                    break;
+                case "thumb-pinky":
+                    //fingerE[2]=true; 
+                    break;
+            }
+        }*/
+        return flag;
+    };
+    
     
     var  acceptToken= function(accept,json,token,term) {
 
@@ -442,70 +517,13 @@
 
                             case "finger":
                                 var fingers = json.finger.toString().split(";");
-                                var fingerE = [false,false,false,false,false];
-                                
-                                for(var f=0;f<fingers.length;f++){
-                                    switch (fingers[f]){
-                                                case "thumb":
-                                                   // console.log("pointable " +token.hand.fingers[0].extended);
-                                                    fingerE[0]=true; 
-                                                    break;
-                                                case "index":
-                                                    //console.log("pointable " +token.hand.fingers[1].extended);
-
-                                                    fingerE[1]=true; 
-                                                    break;
-                                                case "middle":
-                                                    fingerE[2]=true; 
-                                                case "ring":
-                                                    fingerE[3]=true; 
-                                                case "middle":
-                                                    fingerE[4]=true; 
-                                                    break;
-                                    }
-                                }
-                                
-                                flag = flag && (token.hand.fingers[0].extended===fingerE[0])  && (token.hand.fingers[1].extended === fingerE[1])
-                                                   && (token.hand.fingers[2].extended === fingerE[2]) && (token.hand.fingers[3].extended === fingerE[3]) && 
-                                                   (token.hand.fingers[4].extended === fingerE[4]);
-                                           
-                                        //   console.log("flag extended" + flag + "index" + fingerE[1] + "token" +token.hand.fingers[1].extended);
-                                
+                                flag = fingersExtended(fingers,token.hand.fingers);
                                 break;
                                 
                             case "fingerUnion":
-                                var fingers = json.fingerUnion.toString().split(";");
-                                
-                                for(var f=0;f<fingers.length;f++){
-                                    switch (fingers[f]){
-                                                case "thumb-middle":
-                                                   console.log("pointable " +token.hand.fingers[0].extended);
-                                                    flag = flag && (Math.abs(token.hand.fingers[0].distal.nextJoint[2]) > (Math.abs(token.hand.fingers[2].distal.nextJoint[2]) - 10)) 
-                                                            && (Math.abs(token.hand.fingers[0].distal.nextJoint[2]) < (Math.abs(token.hand.fingers[2].distal.nextJoint[2]) +10))
-                                                            && ((token.hand.fingers[0].distal.nextJoint[1] > (token.hand.fingers[2].distal.nextJoint[1] - 12)) 
-                                                            && (token.hand.fingers[0].distal.nextJoint[1]<(token.hand.fingers[2].distal.nextJoint[1] +12))
-                                                            );
-                                                    console.log("thumb" + token.hand.fingers[0].carpPosition +  " middle" + token.hand.fingers[2].carpPosition
-                                                                + " thumb dip position" + token.hand.fingers[0].dipPosition + " middle " + token.hand.fingers[2].dipPosition 
-                                                                + "mcp position" + token.hand.fingers[0].mcpPosition + " middle" + token.hand.fingers[2].mcpPosition + 
-                                                                    "distal thumb " + token.hand.fingers[0].distal.nextJoint + " middle distal" + token.hand.fingers[2].distal.nextJoint + 
-                                                                    " flag " + flag);
-                                                    break;
-                                                case "thumb-index":
-                                                    fingerE[1]=true; 
-                                                    break;
-                                                case "thumb-pinky":
-                                                    fingerE[2]=true; 
-                                                    break;
-                                    }
-                                }
-                               
-                                
-                                
-                                           
-                                           
-                                
-                                    break;
+                                var fingersUnion = json.fingerUnion.toString().split(";");
+                                flag = fingers_Union(fingersUnion,token.hand.fingers);
+                                break;
                                 
                             case "circle":
                                 if (token.gesture  && token.gesture.type === "circle"){
