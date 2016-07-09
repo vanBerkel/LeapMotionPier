@@ -25,7 +25,7 @@ $(document).ready(function() {
 
     var gestureAux = {
         sequence: [
-            {gt: "leap.start", accept:"open", location:""},
+            {gt: "leap.start", accept:"location", location:"up;centeX"},
             {disabling: [
                     {gt: "leap.move", accept:"", iterative: true},
                     {gt: "leap.end",accept:"", move: "", distance:3, directionX:"", tollerance:0.3}

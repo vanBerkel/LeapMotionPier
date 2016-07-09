@@ -2,7 +2,7 @@
 /* global THREE, Leap, controller */
 
 (function(djestit) {
-
+    var thiss= this;
     var _LEAPSTART = 1;
     var _LEAPMOVE = 2;
     var _LEAPEND = 3;
@@ -10,8 +10,8 @@
     var _HandClose = 0.7;
     var _HandOpen = 0.3;
     
-    var _positionUpDown = 100;
-    var _positionDownUp = 50;
+    var _positionUp = 200;
+    var _positionDown = 80;
     var _positionRight = 80;
     var _positionLeft = -80;
     var _positionCenter = 20;
@@ -110,37 +110,8 @@
 
  
 
-   var locationsAccept = function (location1, location2){
-       var flag = false; 
-       var locationAccept = function (location){
-            switch(location){
-                case "up": // la mano si trova in alto rispetto al Leap
-                    flag = token.palmPosition[1] > _positionUpDown;
-                    break;
-                case "down": //la mano si trova in altezza vicino al Leap
-                    flag = token.palmPosition[1] < _positionDownUp;
-                    break;
-                case "right": // la mano si trova a destra rispetto al Leap
-                    flag = token.palmPosition[0] > _positionRight;
-                    break;
-                case "left": // la mano si trova a sinistra rispetto al Leap
-                    flag = token.palmPosition[0] < _positionLeft;
-                    break;
-                case "center": /*la mano si trova tra la posizione 
-                                sx(left) e la posizione dx(right)*/
-                    flag = (token.palmPosition[0] >(_positionLeft) 
-                            && token.palmPosition[0] <(_positionRight)) ;
-                    break;
-             }
-        };   
-        if (location2!==null)
-            flag = locationAccept(location2);
-        if ((location1!==null) && (flag))
-            flag = locationAccept(location1);
-        return flag;
-    };
-
-   var thiss= this;
+   
+ 
     var listRightLeft = [];
     var listLeftRight = [];
     var listUpDown = [];
@@ -210,93 +181,157 @@
           
     }
    
-   var  acceptToken= function(accept,json,token,term) {
-                    var flag = true;                  
-                    for(var i=0; i<accept.length; i++){
+    
+    
+    /* identifica la posizione della mano in 9 posizioni rispetto
+     * allo schermo 2D (considera solo altezza e larghezza).
+     * l'etichette possono essere "up,down,left,right,centerV,centerH"
+     * centerV significa centrale rispetto all' asse verticale;
+     * centerH significa centrale rispetto all'asse orizzontale. 
+     * le etichette possono essere accoppiate tra di loro ad esempio:
+     * location === "up;left" --> la mano si trova in alto a sx
+     * !! certi accoppiamenti non hanno senso ad esempio:
+     * location === "up;down" --> il flag risultera' sempre falso perchè la
+     * mano non si può trovare sia in alto(up) che in basso (down).
+     * In questa funzione l'etichette sono già scompose.
+     * @param {type} location1 prima etichetta puo' valere up o down oleft o 
+     *               right o centerV o centerH
+     * @param {type} location2 seconda etichetta opzinale
+     * @param {type} position identifica la posizione in cui si trova la mano
+     * @returns {Boolean} true se la mano si trova nella posizione specifica
+     *                      falso altrimenti.
+     */ 
+    var locationsAccept = function (location1, location2, position){
+            var flag = false; 
+            var locationAccept = function (location){
+                 console.log("posizione" + position[0]);
+                flag=false;
+                switch(location.toString()){
+                    case "up": // la mano si trova in alto rispetto al Leap
+                        flag =position[1] > _positionUp;
+                        break;
+                    case "down": //la mano si trova in altezza vicino al Leap
+                        flag= position[1] < _positionDown;
+                        break;
+                    case "right": // la mano si trova a destra rispetto al Leap
+                        flag= position[0] > _positionRight;
+                        break;
+                    case "left": // la mano si trova a sinistra rispetto al Leap
+                        flag= position[0] < _positionLeft;
+                        break;
+                    case "centerH": /*la mano si trova tra la posizione 
+                                    sx(left) e la posizione dx(right)*/
+                        flag= (position[0] >(_positionLeft) 
+                                && position[0] <(_positionRight));
                         
+                        break;
+                    case "centerV": /*la mano si trova tra la posizione 
+                                    sx(left) e la posizione dx(right)*/
+                        flag= (position[1] >(_positionDown) 
+                                && position[1] <(_positionUp));
                         
-                        switch (accept[i]){
-                            case "close":
-                                flag =  flag && token.close;
+                        break;
+                    default: /*etichetta non valida come se l'etichetta location non 
+                            * fosse definita quindi il flag viene impostato a true
+                            * visualizzando un messaggio di warning*/
+                        flag = true; 
+                        console.log("name not valid for the location " + location.toString());
+                        break;
+                }
+                return flag;
+            };   
+             if (location1!==null)
+                 flag = locationAccept(location1);
+             if ((location2!==null) && (flag))
+                 flag = locationAccept(location2);
+             return flag;
+        };
+        
+        
+    var semicircle = function(){
+        var flag=true;
+         
+            flag = flag && listDownUp.length > 2 //&& listRightLeft.length > (listDownUp.length) 
+                && listUpDown.length >2; 
 
-                                break;
-                                              
-                        case "location": // identifica la posizione della mano rispetto a 6 posizioni  
-                            /*le posizioni possono essere "up,down,left,right,center" 
-                            * possono essere accoppiate tra di loro ad esempio:
-                            * location === "up;left" --> la mano si trova in alto a sx
-                            * !! certi accoppiamenti non hanno senso ad esempio:
-                            * location === "up;down" --> il flag risultera' sempre falso perchè la
-                            * mano non si può trovare sia in alto(up) che in basso (down)*/
-                            if (json.location){
-                                location = json.location.toString().split(";");
-                                flag = locationsAccept(location[0],location[1]);
-                            }
-                                else{
-                                    flag = true;
-                                    alert("you forgot the variable location to define");
-                                }
+        var Y1 = moveToken[highestPosition].palmPosition[1];
+        var sY = moveToken[0].palmPosition[1];
+
+        var distance = Y1 - sY;
+        var X1 = moveToken[highestPosition].palmPosition[0];
+        var sX = moveToken[0].palmPosition[0];
+
+
+        var m1 = ((Y1 - sY) / (X1 - sX));
+       // var q = Y1 - (X1 * m1);
+
+        var y = ((moveToken[Math.round(highestPosition/2)].palmPosition[0] - sX) * m1) + sY;
+
+       /* console.log("distance between y and y highest/2" + y + " " + 
+                moveToken[Math.round(highest/2)].palmPosition[1]
+                + "start x " + sX + "end x" + X1 + "point x" + moveToken[Math.round(highest/2)].palmPosition[0] 
+                + "final x" + moveToken[moveToken.length-1].palmPosition[0] + "distance " + distance
+                + "distance 20 " + (distance*0.18 ));*/
+        var flag2 = (distance * 0.18) < (moveToken[Math.round(highestPosition/2)].palmPosition[1] -y);
+
+        sY = moveToken[moveToken.length-1].palmPosition[1];
+
+        distance = Y1 - sY;
+
+        sX = moveToken[moveToken.length-1].palmPosition[0];                               
+        m1 = ((sY-Y1) / (sX-X1));
+
+        y = ((moveToken[Math.round((moveToken.length-1-highestPosition)/2)].palmPosition[0] - X1) * m1) + Y1;
+
+        var flag3 = (distance * 0.18) < (moveToken[Math.round((moveToken.length-1-highestPosition)/2)].palmPosition[1] -y);
+
+
+        return flag && (flag3 || flag2);
+    };    
+        
+   var  acceptToken= function(accept,json,token,term) {
+
+                    var flag = true;                  
+                    for(var i=0; (i<accept.length && flag); i++){
+                        switch (accept[i].toString()){
                             
-                            break;
-                            /*...*/
-                            case "2hands":
-                                if (token.hands2){
-                                        flag = flag && (json.separate === token.separate)
+                            case "close": // controlla che la mano sia chiusa
+                                flag = token.close;
+                                break;
+                            case "location": // controlla la posizione della mano
+                                if (json.location!==null){
+                                    var location = [];
+                                    location = json.location.toString().split(";");
+                                    flag = locationsAccept(location[0], location[1],token.palmPosition);
+                                     
+                                }else{
+                                        flag = true;
+                                        console.log("forgot to define the variable location");
                                 }
+                                break;
+                                
+                            case "2hands": /* etichetta che controlla se le mani 
+                                sono unite oppure no */
+                                if (token.hands2)
+                                        flag = (json.separate === token.separate)
                                 else
                                     flag = false;
                                 break;
-                            
-                         
-                            case "open":
+                            case "open": /* controlla che la mano sia apera o 
+                                distesa*/
                                 flag = flag && token.open;
                                 break;
-                        
+
+               
+               
                             case "semicircle":
-                                if ((start!==null)){  
-                                    
-                                    
-                                    flag = flag && listDownUp.length > 2 //&& listRightLeft.length > (listDownUp.length) 
-                                            && listUpDown.length >2
-                                  ; 
-                                                                 
-                                    
-                                    
-                                    var Y1 = moveToken[highestPosition].palmPosition[1];
-                                    var sY = moveToken[0].palmPosition[1];
-                                    
-                                    var distance = Y1 - sY;
-                                    var X1 = moveToken[highestPosition].palmPosition[0];
-                                    var sX = moveToken[0].palmPosition[0];
-                                    
-                                    
-                                    var m1 = ((Y1 - sY) / (X1 - sX));
-                                   // var q = Y1 - (X1 * m1);
-
-                                    var y = ((moveToken[Math.round(highestPosition/2)].palmPosition[0] - sX) * m1) + sY;
-
-                                   /* console.log("distance between y and y highest/2" + y + " " + 
-                                            moveToken[Math.round(highest/2)].palmPosition[1]
-                                            + "start x " + sX + "end x" + X1 + "point x" + moveToken[Math.round(highest/2)].palmPosition[0] 
-                                            + "final x" + moveToken[moveToken.length-1].palmPosition[0] + "distance " + distance
-                                            + "distance 20 " + (distance*0.18 ));*/
-                                    var flag2 = (distance * 0.18) < (moveToken[Math.round(highestPosition/2)].palmPosition[1] -y);
-                                    
-                                    sY = moveToken[moveToken.length-1].palmPosition[1];
-                                    
-                                    distance = Y1 - sY;
-                                    
-                                    sX = moveToken[moveToken.length-1].palmPosition[0];                               
-                                    m1 = ((sY-Y1) / (sX-X1));
-
-                                    y = ((moveToken[Math.round((moveToken.length-1-highestPosition)/2)].palmPosition[0] - X1) * m1) + Y1;
-                                        
-                                    var flag3 = (distance * 0.18) < (moveToken[Math.round((moveToken.length-1-highestPosition)/2)].palmPosition[1] -y);
-                                    
-                                    
-                                    flag = flag && (flag3 || flag2);
-                                   
+                                if (term.type="End"){
+                                    flag = semicircle();
+                                }else{
+                                        flag = true;
+                                        console.log("semicircle work only with term type end");
                                 }
+                                        
                                 break;
                             case "palm": //controlla in che posizione si trova il palmo della mano
                                 switch (json.palmXY){ //controlla il palmo della mano considerando solo gli assi X e Y
@@ -664,7 +699,7 @@
         this.type = "Start";
         this._accepts = function(token) {
             return acceptToken(accept,exp,token,this); 
-            return true;
+            
         };
     };
     LeapStart.prototype = new djestit.GroundTerm();
@@ -675,7 +710,7 @@
         this.type = "Move";
         this._accepts = function(token) {
             return acceptToken(accept,exp,token,this);             
-            return true;
+           
 
         };
     };
@@ -851,7 +886,7 @@
         /* oggetto per aggiornare il colore della mano 
          */
         this.handsUpdate = {
-            scale: 1.3,
+            scale: 1.1,
             materialOptions: {
                     color: new THREE.Color(_colorNew)
             }
@@ -874,7 +909,7 @@
                         setTimeout(function(s){
                              s.materialOptions.color.set(_colorDefault); 
                          }, 3000,self.handsUpdate);
-                        console.log(self.root);
+                     //   console.log(self.root);
                         // la gesture e' stata rilevata  viene resetato il valore del primo id della prossima gesture
 
                         self.tokenToLeap = -1; 
