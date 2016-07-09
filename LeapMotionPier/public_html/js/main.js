@@ -25,7 +25,7 @@ var config = {
 
 $(document).ready(function() {
 
-    var GestureAux = {
+    /*var GestureAux = {
         sequence: [
             {gt: "leap.start", accept:"finger" , finger:"index"},
             {disabling: [
@@ -37,7 +37,7 @@ $(document).ready(function() {
                 ]}
         ]
     };
-    
+    */
  
     /* il campo accept contiene tutti i campi che servono per accettare il ground di riferimento 
      * close specifica che la mano dev essere chiusa
@@ -279,11 +279,12 @@ $(document).ready(function() {
         ]
     };
     
-    var gestures = {GestureAux, 
+    var gestures = { 
+       pany,
        panx,
        fingerSnap, 
        pressingIndex, 
-       wristclockwise, 
+       //wristclockwise, 
        semicircle, 
        thumbUp,
        pullString,
@@ -295,31 +296,16 @@ $(document).ready(function() {
     //gestures.GestureAux;
     var elenco = [];
  
-    /*for (var name in gestures) {
-     elenco.push(gestures[name]);
-   } */
+    for (var name in gestures) {
+        elenco.push(gestures[name]);
+   } 
     
-    elenco.push(gestures.GestureAux);
-    elenco.push(gestures.panx);
-    //elenco.push(gestures.fingerSnap);
+  
    
 
     
    var input = {
-        choice: elenco
-            //gestureAux,
-            //panx, 
-            //fingerSnap, 
-            //pressingIndex, 
-            //wristclockwise, 
-            //semicircle, 
-            //thumbUp,
-            //pullString,
-            //pressingButton,
-            //circleClockwise,
-            //handClap,
-            //stretchHand
-        ,
+        choice: elenco,
         iterative: true
     };
     
@@ -334,199 +320,69 @@ $(document).ready(function() {
                     lsensor.colorComplete();
                     var s="";
                     switch (item){
-                        case gestures.GestureAux:
-                            s+= "pressing index ";
+                        case gestures.pany:
+                            s+= "gesture pan Y complete ";
                             break;
                         case gestures.panx:
-                            s += "gesto pan X complete ";
+                            s += "gesture pan X complete ";
                             break;
                         case gestures.fingerSnap:
-                            s += "pressing index";
+                            s += "gesture finger Snap complete";
                             break;
                         case gestures.pressingIndex: 
-                            s+= "pressing index2";
+                            s+= "gesture pressing a Button with the index Finger complete";
                             break;   
                        case gestures.wristclockwise:
-                            s+= "pressing index";
+                            s+= "gesture wristclockwise complete";
                             break;
                         case gestures.thumbUp:
-                             s += "pressing index2";
+                             s += "gesture pan thumb Up complete";
                             break;    
                         case gestures.pullString:
-                             s += "pressing index2";
+                             s += "gesture pulling a string downward complete";
                             break;  
                         case gestures.pressingButton:
-                            s += "pressing index2";
+                            s += "gesture pressing button complete";
                             break;    
                         case gestures.handClap:
-                             s += "pressing index2";
+                             s += "gesture hand clap complete";
                             break;
                         case gestures.circleClockwise:
-                             s += "pressing index2";
+                             s += "gesture circle clockwise with the index Finger complete";
                             break;
                         case gestures.stretchHand:
-                             s += "pressing index2";
+                             s += "gesture Stretching the hand from fist complete";
                             break;
+                        case gestures.semicircle:
+                            s+="gesture semicircle complete";
                         default:
-                            s +="il gesto non e' stato aggiunto all'elenco";
+                            s +="gesture not defined";
                     }
                     //document.getElementById("gesture").="<br>";
                     document.getElementById("gesture").textContent +=s;
                 });  
     });
-    
 
-    
-
-    
-    
-    
-/*
-
-            
-    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
-            panx,
-            function(args) {                
-                console.log("action end ");
-                document.getElementById("gesture").textContent += "</br>";
-               
-         });
-         
-    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
-            thumbUp,
-            function(args) {                
-                console.log("action end ");
-                document.getElementById("gesture").textContent += "</br>gesto pan thumb Up completato";
-               
-         });
-         
-    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
-            pany,
-            function(args) {                
-                console.log("action end ");
-                document.getElementById("gesture").textContent += "</br>gesto pan Y completato";
-               
-   });
-   
-   
-   djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
-            stretchHand,
-            function(args) {                
-                console.log("action end ");
-                document.getElementById("gesture").textContent += "</br>gesture Stretching the hand from fist complete";
-                
-   });
-   
-    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
-            circleClockwise,
-            function(args) {                
-                console.log("action end ");
-                document.getElementById("gesture").textContent += "</br>gesture circle clockwise with the index Finger complete";
-               
-   });
-    
-    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
-            pressingIndex,
-            function(args) {                
-                console.log("action end ");
-                document.getElementById("gesture").textContent += "</br>gesture pressing a Button with the index Finger complete";
-   });
-   
-  
-   
-    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
-            handClap,
-            function(args) {                
-                console.log("action end ");
-                document.getElementById("gesture").textContent += "</br>gesture hand clap complete";
-               
-   });
-         
-    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
-            pullString,
-            function(args) {                
-                console.log("action end ");
-                document.getElementById("gesture").textContent += "</br>gesture pulling a string downward complete";
-                
-   });
-   
-   
-       djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
-            pressingButton,
-            function(args) {                
-                console.log("action end ");
-                document.getElementById("gesture").textContent += "</br>gesture pressing button complete";
-               
-   });
-          
-    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\"))",
-            fingerSnap,
-            function(args) {                
-                console.log("action end ");
-                document.getElementById("gesture").textContent += "</br>gesture finger Snap complete";
-               
-   });
-   
-   
-       djestit.onComplete(
-            ":has(:root > .gt:val(\"leap.start\"))",
-            fingerSnap,
-            function(args) {
-                console.log("line added " + args.token.palmPosition);
-              
-            });
-            
-            
             
     djestit.onComplete( ":has(:root > .end:val(\"1\"))",
             semicircle,
-            function(args) {                
-               // var color = 0x65ffff;
-                //hands.updateHand(args.token.hand,color);
-                //
-                document.getElementById("gesture").textContent += "</br>gesture semicircle complete"
+            function() {                
+                var color = 0x65ffff;
+                lsensor.changeColorHand(color);
             }); 
             
             
     djestit.onComplete( ":has(:root > .end:val(\"2\"))",
             semicircle,
             function(args) {                
-                 document.getElementById("gesture").textContent += "</br>gesture semicircle complete2";
-
-              //  var color = 0x65ffaa;
+                 //document.getElementById("gesture").textContent += "</br>gesture semicircle complete2";
+                    var color = 0x65ffaa;
                // hands.updateHand(args.token.hand,color);
+                    lsensor.changeColorHand(color);
+
               });    
-            
-      djestit.onComplete( ":has(:root > .end:val(\"3\"))",
-            semicircle,
-            function(args) {                
-                console.log("action end ");
-                document.getElementById("gesture").textContent += "</br>gesture semicircle complete";
-                });         
-    djestit.onComplete( ":has(:root > .gt:val(\"leap.end\") )",
-            wristclockwise,
-            function(args) {                
-                console.log("action end ");
-                document.getElementById("gesture").textContent += "</br>gesture wristclockwise complete";
-               });           
-            
-    
-    /* Crea un nuovo oggetto di tipo LeapSensor 
-     * con in ingresso le espressioni descritte precedentemente
-     * l-ultimo identifica il massimo numero di frame che puo contenere per rilevare un gesto
-     */
-    
-    var lsensor = new djestit.LeapSensor(input, 500);
 
-
-    
- 
-    //lsensor.changeColorHand(0x65ff00);
-    
-        
- 
-
-   
+    var lsensor = new djestit.LeapSensor(input, 500);  
  
  
  });
