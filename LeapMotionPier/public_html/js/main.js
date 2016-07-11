@@ -27,19 +27,17 @@ $(document).ready(function() {
 
     var gestureAux= {
         sequence: [
-            {gt: "leap.start", accept:"close" },
+            {gt: "leap.start",  accept:"location", location:"up" },
             {disabling: [
-                    {gt: "leap.move",  accept:"close", 
-                        iterative: true},
-                    {choice: [
-                        {gt: "leap.end", accept:"move;open", move:"x", 
-                        directionZ:"leftright",  distance:2, 
-                        tollerance:0.3}, 
-                        {gt: "leap.end", accept:"move;open", move:"x", 
-                        directionZ:"rightleft" , distance:2, 
-                        tollerance:0.3}]}
-                ]}
+                   
+                    {gt: "leap.move",  accept:"location", location:"up", iterative: true},
+                    {gt: "leap.end",  end:1, accept:"handShape",handShape:"close", position:"up", move: "y",  directionY:"updown" }]},
+             {disabling: [
+                   
+                    {gt: "leap.move",  accept:"location;handShape",handShape:"close", location:"up", iterative: true},
+                    {gt: "leap.end",  end :2, accept:"handShape",handShape:"open", move: "y",  directionY:"downup"}]}
         ]
+
     };
     
  
@@ -94,15 +92,16 @@ $(document).ready(function() {
      */
     var stretchHand = {
         sequence: [
-            {gt: "leap.start" , accept:"close" },
+            {gt: "leap.start" , accept:"handShape", handShape:"close" },
             {disabling: [
-                    {gt: "leap.move", accept:"close", iterative: true},
-                    {gt: "leap.end",accept:"open" }
+                    {gt: "leap.move", accept:"handShape", handShape:"close", 
+                        iterative: true},
+                    {gt: "leap.end",accept:"handShape", handShape:"open" }
                 ]}
         ]
 
     };
-    
+   
     /*
      * 
      * @type type
@@ -112,7 +111,7 @@ $(document).ready(function() {
      */
    var circleClockwise = {
        sequence: [
-            {gt: "leap.start", accept:"circle" , finger:"index"},
+            {gt: "leap.start", accept:"circle;finger" , finger:"index"},
             {disabling: [
                     {gt: "leap.move", accept:"circle", iterative: true},
                     {gt: "leap.end",accept:"circle",clockwise:true  }
@@ -132,9 +131,15 @@ $(document).ready(function() {
             {disabling: [
                     {gt: "leap.move",  accept:"finger", finger:"index", 
                         iterative: true},
-                    {gt: "leap.end", accept:"move;finger", move:"z", 
-                        directionZ:"behindfront", finger:"index" , distance:2, 
+                    {gt: "leap.end", end: 1, accept:"move", move:"z", 
+                        directionZ:"behindfront" , distance:3, 
                         tollerance:0.3}
+                ]},
+            {disabling: [
+                    {gt: "leap.move",  accept:"finger", finger:"index", 
+                        iterative: true},
+                    {gt: "leap.end", end: 2, accept:"newmove", move:"z", 
+                        directionZ:"frontbehind", }
                 ]}
         ]
     };
@@ -148,17 +153,32 @@ $(document).ready(function() {
      * 2 hands identifica che si tratta di due mani
      *  separate identifica se le mani sono separate oppure no
      */
+    orientationZY: "up"
     
     var handClap = {
-       sequence: [
-            {gt: "leap.start", accept:"2hands;open", palmZY:"up", 
-                separate : true},
-            {disabling: [
-                    {gt: "leap.move", accept:"2hands;open", palmZY:"up", 
-                        separate : true, iterative: true},
-                    {gt: "leap.end",  accept:"2hands", palmZY:"up", 
-                        separate: false}
-                ]}
+        choice: [
+            {sequence: [
+                {gt: "leap.start", accept:"2hands;handShape;orientation", 
+                    handShape:"open", separate : true,  orientationXY: "up"},
+                {disabling: [
+                        {gt: "leap.move", accept:"2hands;open;orientation", 
+                            separate : true, handShape:"open",
+                            orientationXY: "up",iterative: true},
+                        {gt: "leap.end",  accept:"2hands",  
+                            separate: false}
+                    ]}
+            ]},
+            {sequence: [
+                {gt: "leap.start", accept:"2hands;handShape;orientation", 
+                    handShape:"open", separate : true,  orientationZY: "up"},
+                {disabling: [
+                        {gt: "leap.move", accept:"2hands;open;orientation", 
+                            separate : true, handShape:"open",
+                            orientationZY: "up", iterative: true},
+                        {gt: "leap.end",  accept:"2hands",  
+                            separate: false}
+                    ]}
+            ]}
         ]
     }; 
     /*palm identifica la posizione della mano rispetto gli assi x ed y 
@@ -168,13 +188,22 @@ $(document).ready(function() {
      * */
     var pullString = {
        sequence: [
-            {gt: "leap.start", accept:"close;location;palm", location:"up", 
-                palmXY:"up"},
+            {gt: "leap.start", accept:"location;orientation", location:"up", 
+                orientationXY:"up"},
             {disabling: [
-                    {gt: "leap.move",  accept:"close;palm", palmXY:"up", 
+                    {gt: "leap.move",  accept:"location;orientation", 
+                        orientationXY:"up", location:"up",iterative: true},
+                    {gt: "leap.end", end:1, 
+                        accept:"handShape", handShape : "close",
+                        }
+                ]},
+                {disabling: [
+                    {gt: "leap.move",   accept:"location;handShape;orientation", 
+                         orientationXY:"up",location:"up",handShape : "close",
                         iterative: true},
-                    {gt: "leap.end", accept:"close;move;palm", palmXY:"up", 
-                        move: "y", directionY: "updown", distance: 3}
+                    {gt: "leap.end", end:2, accept:"move", move: "y", 
+                        directionY: "updown", 
+                        distance: 3, tollerance: 0.8}
                 ]}
         ]
     };
@@ -183,42 +212,59 @@ $(document).ready(function() {
   *  
   * 
   */
-    var semicircle1 = {
+    var semicircleRL = {
             sequence: [
             {gt: "leap.start", accept:"finger" , finger:"index"},
             {disabling: [
                     {gt: "leap.move", accept:"finger" , finger:"index", 
                         iterative: true},
-                    {gt: "leap.end", end:"1", accept:"finger;move", 
-                        finger:"index", move: "y;x",  directionY:"downup", 
-                        directionX:"leftright", distance:0}
+                    {gt: "leap.end", end:"1", accept:"move", 
+                        move: "y;x",  directionY:"downup", 
+                        directionX:"rightleft", distance:1}
                 ]}, 
             {disabling: [
                     {gt: "leap.move", accept:"finger" , finger:"index", 
                         iterative: true},
-                    {gt: "leap.end", end:"2", accept:"finger;newmove",                     //non è move ma new move
-                        finger:"index", move: "y;x",  directionY:"updown", 
-                        directionX:"leftright", distance:0}
+                    {gt: "leap.end", end:"2", accept:"newmove;move",                     //non è move ma new move
+                         newmove: "y",  newdirectionY:"updown",
+                         move: "x", directionX:"rightleft"
+                        }
                 ]},  
                    {disabling: [
                         {gt: "leap.move", accept:"finger", finger:"index", 
                             iterative: true},
-                        {gt: "leap.end", end:"3", accept:"finger;semicircle", 
-                            finger:"index"}
+                        {gt: "leap.end", end:"3", accept:"semicircle"}
                 ]}]
 
     };
     
-    
+/*trasforma la stringa accept in array
+var flag := true
+for 0 to dimensione array accept or termina quando flag=false  do
+if accept = "location" then
+	if var location esiste then
+           		trasforma la stringa location in array
+            	for 0 to 2 or termina quando flag=false do
+                		if var location[0] = "up" then
+                   			 if posizione mano = up then
+                        			flag := true  
+                   			 else// la mano non si trova in questa posizione
+                        			flag := false 
+			...
+		...
+	...
+return flag */
+
+
     var semicircle = {
             sequence: [
-            {gt: "leap.start", accept:"finger" , finger:"index"},
+            {gt: "leap.start", accept:"close" , finger:"index"},
             {disabling: [
-                    {gt: "leap.move", accept:"finger" , finger:"index", 
+                    {gt: "leap.move", accept:"" , finger:"index", 
                         iterative: true},
-                    {gt: "leap.end", end:1, accept:"finger;move", 
+                    {gt: "leap.end", end:1, accept:"move", 
                         finger:"index", move: "y;x",  directionY:"downup", 
-                        directionX:"rightleft", distance:0}
+                        directionX:"leftright", distance:1, tollerance:0.3}
                 ]}, 
             {disabling: [
                     {gt: "leap.move", accept:"finger" , finger:"index", 
@@ -244,18 +290,21 @@ $(document).ready(function() {
                         iterative: true},
                     {gt: "leap.end", accept:"close;palm;move", 
                         palmXY:"normalDown", move:"y", directionY:"updown", 
-                        distance:3}
+                        distance:3,tollerance:0.3}
                 ]}
         ]
     };
 
     var thumbUp  = {
        sequence: [
-            {gt: "leap.start",  accept:"close;palm", palmXY:"up"},
+            {gt: "leap.start",  accept:"handShape;orientation", 
+                    handShape:"close", orientationXY:"up"},
             {disabling: [
-                    {gt: "leap.move", accept:"close;palm", palmXY:"up", 
+                    {gt: "leap.move", accept:"handShape;orientation", 
+                        handShape:"close", orientationXY:"up", 
                         iterative: true},
-                    {gt: "leap.end", accept:"palm;finger", palmXY:"up", 
+                    {gt: "leap.end", accept:"handShape;orientation;finger", 
+                        handShape:"close",orientationXY:"up", 
                         finger:"thumb"}
                 ]}
         ]
@@ -269,10 +318,10 @@ $(document).ready(function() {
        */
     var wristclockwise = {
        sequence: [
-            {gt: "leap.start", tid: 1 , accept:"palm", palmXY:"normalDown" },
+            {gt: "leap.start",  accept:"palm", palmXY:"down" },
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"", iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"palm", palmXY:"normalUp"}
+                    {gt: "leap.move",  accept:"", iterative: true},
+                    {gt: "leap.end",  accept:"palm", palmXY:"normalUp"}
                 ]}
         ]
 
@@ -280,20 +329,24 @@ $(document).ready(function() {
    
     var fingerSnap  = {
        sequence: [
-            {gt: "leap.start", tid: 1 , accept:"fingerUnion", 
-                finger:"index;thumb", fingerUnion:"thumb-middle"},
+            {gt: "leap.start", accept:"fingerUnion", 
+                fingerUnion:"thumb-middle"},
             {disabling: [
-                    {gt: "leap.move", tid: 1, accept:"palm", palmXY:"up", 
-                        iterative: true},
-                    {gt: "leap.end", tid: 1, accept:"finger;palm", palmXY:"up", 
+                    {gt: "leap.move", accept:"fingerUnion", 
+                        fingerUnion:"thumb-middle", iterative: true},
+                    {gt: "leap.end", end:1, accept:"finger", finger:"index"}
+                ]},
+            {disabling: [
+                    {gt: "leap.move", accept:"fingerUnion", 
+                        fingerUnion:"thumb-middle", iterative: true},
+                    {gt: "leap.end", end:2, accept:"finger", 
                         finger:"index;thumb"}
                 ]}
         ]
     };
     
-    var gestures = {// gestureAux,
-       pan,
-       //panx,
+    var gestures = { gestureAux,
+       //pan,
        //fingerSnap, 
        //pressingIndex, 
        //wristclockwise, 
@@ -324,10 +377,11 @@ $(document).ready(function() {
     //json expression
     jsonStart = ":has(:root > .gt:val(\"leap.start\"))";
     jsonEnd = ":has(:root > .gt:val(\"leap.end\"))";
-    
+    jsonEnd1 = ":has(:root > .end:val(\"1\"))";
+    jsonEnd2  = ":has(:root > .end:val(\"2\"))";
     //change the color when the gesture is complete
     elenco.forEach(function (item){
-            djestit.onComplete(jsonEnd, item,
+            djestit.onComplete(jsonEnd2, item,
                 function() {   
                     lsensor.colorComplete();
                     var s="";
@@ -371,7 +425,23 @@ $(document).ready(function() {
                     document.getElementById("gesture").textContent +=s;
                 });  
     });
+            
+    djestit.onComplete(jsonEnd1 ,
+            gestureAux,
+            function() {                
+                var color = 0xffffff;
+                lsensor.changeColorHand(color);
+            }); 
+           djestit.onComplete( jsonEnd2,
+            gestureAux,
+            function(args) {                
+                 //document.getElementById("gesture").textContent += "</br>gesture semicircle complete2";
+                    var color = 0x65ffaa;
+               // hands.updateHand(args.token.hand,color);
+                    lsensor.changeColorHand(color);
 
+              }); 
+            
             
     djestit.onComplete( ":has(:root > .end:val(\"1\"))",
             semicircle,
@@ -390,7 +460,15 @@ $(document).ready(function() {
                     lsensor.changeColorHand(color);
 
               });    
+    djestit.onComplete(   jsonStart,
+            fingerSnap,
+            function(args) {                
+                 //document.getElementById("gesture").textContent += "</br>gesture semicircle complete2";
+                    var color = 0x65ffaa;
+               // hands.updateHand(args.token.hand,color);
+                    lsensor.changeColorHand(color);
 
+              });
     var lsensor = new djestit.LeapSensor(input, 500);  
  
  

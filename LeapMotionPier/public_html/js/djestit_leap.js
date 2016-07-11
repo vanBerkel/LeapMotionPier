@@ -9,6 +9,7 @@
     
     var _HandClose = 0.7;
     var _HandOpen = 0.3;
+    var _HandNormal;
     
     var _positionUp = 200;
     var _positionDown = 80;
@@ -199,10 +200,11 @@
      * @returns {Boolean} true se la mano si trova nella posizione specifica
      *                      falso altrimenti.
      */ 
+    //TODO if this not the location2 the function not works good
     var locationsAccept = function (location1, location2, position){
             var flag = false; 
             var locationAccept = function (location){
-                 console.log("posizione" + position[0]);
+                 //console.log("posizione" + position[0]);
                 flag=false;
                 switch(location){
                     case "up": // la mano si trova in alto rispetto al Leap
@@ -240,8 +242,8 @@
             };   
              if (location1!==null)
                  flag = locationAccept(location1);
-             if ((location2!==null) && (flag))
-                 flag = locationAccept(location2);
+             //if ((location2!==null) && (flag))
+               //  flag = locationAccept(location2);
              return flag;
         };
    
@@ -289,9 +291,9 @@
         return flag && (flag3 || flag2);
     };    
     
-     var palm_XY = function(palmXY,palm,typeHand){
+     var orientation_XY = function(orientationXY,palm,typeHand){
         var flag = true;
-        switch (palmXY){ //controlla il palmo della mano considerando solo gli assi X e Y
+        switch (orientationXY){ //controlla il palmo della mano considerando solo gli assi X e Y
             case "normalUp"://palmo della mano rivolta verso l'alto
                 /* a seconda della mano di riferimento (destra, sinistra) il controllo per capire in che posizione 
                  * si trova il palmo della mano cambia
@@ -335,9 +337,9 @@
     }; 
    
     //TODO implements normalUp, normalDown
-    var palm_ZY = function (palmZY,palm,typeHand){    
+    var orientation_ZY = function (orientationZY,palm,typeHand){    
         var flag=true;
-        switch (palmZY){
+        switch (orientationZY){
             case "normalUp":
                     //console.log("normalUp PalmZY ancora da definire");
                 break;
@@ -369,9 +371,9 @@
     }; 
     
     //TODO implements palm_XZ
-    var palm_XZ = function (palmXZ,palm,typeHand){
+    var orientation_XZ = function (orientationXZ,palm,typeHand){
         var flag = true;
-        switch (palmXZ){
+        switch (orientationXZ){
             case "normalU\n\p":
                   //  console.log("normalUp PalmXZ ancora da definire");
                 break;
@@ -426,15 +428,15 @@
     //TODO implements all
     var fingers_Union = function(fingersUnion, fingersToken){
         var flag = true;
-      /*  for(var f=0;f<fingersUnion.length && flag;f++){
+        for(var f=0;f<fingersUnion.length && flag;f++){
             switch (fingersUnion[f].toString()){
                 case "thumb-middle":
-                   console.log("pointable " +fingersToken[0].extended);
-                    flag = (Math.abs(fingersToken[0].distal.nextJoint[2]) > (Math.abs(fingersToken[2].distal.nextJoint[2]) - 10)) 
+                   console.log("pointable " +fingersToken[0].distal.nextJoint[0]);
+                   flag = (Math.abs(fingersToken[0].distal.nextJoint[2]) > (Math.abs(fingersToken[2].distal.nextJoint[2]) - 10)) 
                             && (Math.abs(fingersToken[0].distal.nextJoint[2]) < (Math.abs(fingersToken[2].distal.nextJoint[2]) +10))
                             && (fingersToken[0].distal.nextJoint[1] > (fingersToken[2].distal.nextJoint[1] - 12)) 
-                            && (fingersToken[0].distal.nextJoint[1]<(fingersToken[2].distal.nextJoint[1] +12))
-                            );
+                            && (fingersToken[0].distal.nextJoint[1]<(fingersToken[2].distal.nextJoint[1] +12));
+                            
                     console.log("thumb" + fingersToken[0].carpPosition +  " \n\
                             middle" + fingersToken[2].carpPosition
                                 + " thumb dip position\n\
@@ -458,7 +460,7 @@
                     //fingerE[2]=true; 
                     break;
             }
-        }*/
+        }
         return flag;
     };
     
@@ -592,16 +594,41 @@
     };   
                  
                         
-                        
+    var handShape_ = function(shape,shapeToken){
+        var flag = true;
+        switch(shape.toString()){
+            case "close" : 
+                flag = shapeToken.close;
+                break;
+            case "open":
+                flag = shapeToken.open;
+                break;
+            case "normal":
+                flag = (!shapeToken.open && !shapeToken.open);
+                break;
+            default:
+                console.log("name not valid for the location " + shape);
+                
+        }
+        return flag;
+    }
+    
     var  acceptToken = function(accept,json,token,term) {
 
                     var flag = true;                  
                     for(var i=0; (i<accept.length && flag); i++){
                         switch (accept[i].toString()){
                             
-                            case "close": // controlla che la mano sia chiusa
-                                flag = token.close;
+                            case "handShape": // controlla che la mano sia chiusa
+                                if (json.handShape!== null)
+                                    flag = handShape_(json.handShape,token);
+                                else{
+                                    flag = true;
+                                    console.log("forgot to define the variable handShape");
+                                }
                                 break;
+                            
+                
                             case "location": // controlla la posizione della mano
                                 if (json.location!==null){
                                     var location = [];
@@ -621,11 +648,6 @@
                                 else
                                     flag = false;
                                 break;
-                            case "open": /* controlla che la mano sia apera o 
-                                distesa*/
-                                flag = flag && token.open;
-                                break;
-
                             case "semicircle":
                                 if (term.type==="End"){
                                     flag = semicircle();
@@ -635,10 +657,10 @@
                                 }
                                         
                                 break;
-                            case "palm": //controlla in che posizione si trova il palmo della mano
-                                flag =  palm_XZ(json.palmXZ,token.hand.yaw(),token.hand.type) &&
-                                        palm_ZY(json.palmZY,token.hand.pitch(),token.hand.type) &&
-                                        palm_XY (json.palmXY,token.hand.roll(),token.hand.type);
+                            case "orientation": //controlla in che posizione si trova il palmo della mano
+                                flag =  orientation_XZ(json.orientationXZ,token.hand.yaw(),token.hand.type) &&
+                                        orientation_ZY(json.orientationZY,token.hand.pitch(),token.hand.type) &&
+                                        orientation_XY (json.orientationXY,token.hand.roll(),token.hand.type);
                                 break;
 
                             case "finger":
@@ -736,8 +758,10 @@
 
         this._accepts = function(token) {
             updateListToken(token);
-            return acceptToken(accept,exp,token,this); 
+             flag = acceptToken(accept,exp,token,this); 
+             console.log("end" + exp.end + " " + flag);
 
+            return flag;
         };
   
     };
@@ -770,7 +794,7 @@
                     if (this.leaps[token.id].length < this.capacity) {
                         this.leaps[token.id].push(token);
                     } else {
-                       //alert("hai impiegato troppo tempo ad eseguire un gesto");
+                      //alert("hai impiegato troppo tempo ad eseguire un gesto");
                         console.log("error!!you use too time");
                         thiss.continueLeap = false;
                         
@@ -1052,3 +1076,4 @@
 
 
 }(window.djestit = window.djestit || {}, undefined));
+5
